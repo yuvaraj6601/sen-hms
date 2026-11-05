@@ -9,6 +9,7 @@ import { buildLabReportHtml, type LabReportData, type LabReportTest } from "../.
 import Badge from "../../../../_components/Badge";
 import Modal, { FormField, Input, Select, Textarea } from "../../../../_components/Modal";
 import TestSearchSelect from "../../../../_components/TestSearchSelect";
+import VoicePrescriptionModal from "../../../../_components/VoicePrescriptionModal";
 import HospitalHeader from "../../../../_components/hospital/HospitalHeader";
 import { HOSPITAL } from "../../../../_lib/hospital-config";
 
@@ -144,6 +145,17 @@ interface ObservationResponse {
   notes: string;
   createdBy: string;
   createdAt: string;
+}
+
+interface PrescriptionRecord {
+  id: number;
+  prescriptionNo: string;
+  doctorName: string;
+  visitDate: string;
+  diagnosis: string | null;
+  notes: string | null;
+  source: "VOICE" | "MANUAL" | null;
+  items: { drugName: string; dosage: string; frequency: string; route: string; timing: string | null; duration: string | null; instructions: string | null }[];
 }
 
 interface MedicationResponse {
@@ -533,6 +545,10 @@ export default function CaseSheetPage({ params }: { params: Promise<{ patientId:
     chiefComplaint: "", clinicalFindings: "", diagnosis: "", plan: "", notes: "",
   });
 
+  // Voice prescription
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<PrescriptionRecord[]>([]);
+
   // Medication modal
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [medSaving,    setMedSaving]    = useState(false);
@@ -666,7 +682,7 @@ export default function CaseSheetPage({ params }: { params: Promise<{ patientId:
     // Labs are fetched by patient (not admission) so that orders placed from the
     // Lab Investigations page — which are stored with admissionId = NULL — still
     // appear here. We then scope them to the selected admission client-side.
-    const [obsRes, medRes, vitalRes, labRes, billRes, docRes] = await Promise.all([
+    const [obsRes, medRes, vitalRes, labRes, billRes, docRes, rxRes] = await Promise.all([
       apiFetch(`/api/case-sheet/observations?admissionId=${admId}`),
       apiFetch(`/api/case-sheet/medications?admissionId=${admId}`),
       apiFetch(`/api/case-sheet/vitals?admissionId=${admId}`),
@@ -675,7 +691,9 @@ export default function CaseSheetPage({ params }: { params: Promise<{ patientId:
         : apiFetch(`/api/lab/investigations/admission/${admId}`),
       apiFetch(`/api/bills/admission/${admId}`),
       apiFetch(`/api/case-sheet/documents/admission/${admId}`),
+      apiFetch(`/api/prescriptions?admissionId=${admId}`),
     ]);
+    if (rxRes.ok)    setPrescriptions(rxRes.data as PrescriptionRecord[]);
     if (obsRes.ok)   setObservations(obsRes.data as ObservationResponse[]);
     if (medRes.ok)   setMedications(medRes.data as MedicationResponse[]);
     if (vitalRes.ok) setVitals(vitalRes.data as VitalSignResponse[]);
@@ -1726,7 +1744,12 @@ ${sec("FOLLOW-UP", f.followUp || "")}
           {tab === "medications" && (
             <div className="space-y-4">
               {isActive && (role === "Admin" || role === "Managing Director" || role === "Doctor") && (
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setVoiceModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold border border-[#00059f] text-[#00059f] bg-white hover:bg-blue-50 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-14 0m7 7v3m-4 0h8M12 3a3 3 0 00-3 3v5a3 3 0 006 0V6a3 3 0 00-3-3z" /></svg>
+                    Record Voice
+                  </button>
                   <button onClick={() => setMedModalOpen(true)}
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-[#00059f] text-white hover:bg-blue-800 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -1734,8 +1757,33 @@ ${sec("FOLLOW-UP", f.followUp || "")}
                   </button>
                 </div>
               )}
-              {medications.length === 0
+              {prescriptions.length > 0 && (
+                <div className="space-y-3">
+                  {prescriptions.map(rx => (
+                    <div key={rx.id} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-bold text-slate-900">{rx.prescriptionNo}</p>
+                        {rx.source === "VOICE" && <Badge label="Voice" />}
+                        <span className="text-xs text-slate-400">{rx.visitDate} · {rx.doctorName}</span>
+                      </div>
+                      {rx.diagnosis && <p className="text-xs text-slate-600"><span className="font-semibold">Diagnosis:</span> {rx.diagnosis}</p>}
+                      <ul className="text-xs text-slate-700 space-y-0.5">
+                        {rx.items.map((it, i) => (
+                          <li key={i}>
+                            <span className="font-semibold">{it.drugName}</span> {it.dosage} · {it.frequency} · {MED_ROUTE_DISPLAY[it.route] ?? it.route}
+                            {it.timing ? ` · ${it.timing.replace(/_/g, " ").toLowerCase()}` : ""}{it.duration ? ` · ${it.duration}` : ""}
+                            {it.instructions ? ` — ${it.instructions}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                      {rx.notes && <p className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded inline-block">{rx.notes}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {medications.length === 0 && prescriptions.length === 0
                 ? <EmptyState icon="💊" text="No medications prescribed yet" />
+                : medications.length === 0 ? null
                 : (
                   <div className="space-y-3">
                     {medications.map(m => (
@@ -2369,6 +2417,16 @@ ${sec("FOLLOW-UP", f.followUp || "")}
           )}
         </div>
       </Modal>
+
+      {/* ═══ Voice Prescription Modal ═══ */}
+      {patient && (
+        <VoicePrescriptionModal
+          open={voiceModalOpen}
+          onClose={() => setVoiceModalOpen(false)}
+          context={{ patientId: patient.id, uhid: patient.uhid, admissionId: admission?.id ?? undefined, doctorName: userName }}
+          onSaved={loadCaseSheet}
+        />
+      )}
 
       {/* ═══ Prescribe Medication Modal ═══ */}
       <Modal open={medModalOpen} onClose={() => setMedModalOpen(false)} title="Prescribe Medication" size="md"

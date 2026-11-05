@@ -132,6 +132,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/case-sheet/**").hasAnyRole(MD, AD, DR, RC, IC, NU, LIR)
                 .requestMatchers("/case-sheet/**").hasAnyRole(MD, AD, DR, NU)
 
+                // ── Prescriptions (voice dictation draft + confirmed save) ───
+                .requestMatchers(HttpMethod.GET, "/prescriptions/**").hasAnyRole(MD, AD, DR, RC, IC, NU, LIR)
+                .requestMatchers("/prescriptions/**").hasAnyRole(MD, AD, DR)
+
                 // ── Case sheet documents (upload / download / delete) ────────
                 // GET (list + download) — all who can view case sheet
                 // POST (upload)         — doctors, nurses, admin, MD
