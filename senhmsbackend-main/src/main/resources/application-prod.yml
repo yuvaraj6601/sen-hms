@@ -1,0 +1,54 @@
+# ============================================================
+# Production profile — loaded when SPRING_PROFILES_ACTIVE=prod
+# Overrides application.yml for Railway deployment
+# All sensitive values come from Railway environment variables
+# ============================================================
+
+spring:
+  datasource:
+    # Railway MySQL internal connection (private network — no SSL needed)
+    url: jdbc:mysql://mysql.railway.internal:3306/railway?useSSL=false&serverTimezone=Asia/Kolkata&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      pool-name: HmsHikariPool
+      # Sized for a single backend instance. Keep (maximum-pool-size * instances)
+      # safely under Railway MySQL's max_connections. Overridable via env vars.
+      maximum-pool-size: ${DB_POOL_MAX:15}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: 30000      # 30s to acquire a connection before failing fast
+      idle-timeout: 300000           # 5m before an idle connection is retired
+      max-lifetime: 1200000          # 20m hard cap (< MySQL wait_timeout) to avoid stale conns
+      keepalive-time: 300000         # 5m keepalive ping to prevent idle-drop by the DB/proxy
+
+  jpa:
+    hibernate:
+      ddl-auto: update        # Flyway owns the schema — Hibernate only validates
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: ${PORT:8080}            # Railway injects $PORT automatically
+
+logging:
+  level:
+    root:                       WARN
+    com.hms:                    INFO
+    org.springframework.web:    WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL:          WARN   # no SQL noise in prod
+    org.flywaydb:               INFO
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}       # must be set in Railway env vars
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:https://hms-frontend-two-drab.vercel.app}

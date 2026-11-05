@@ -1,0 +1,17 @@
+package com.hms.masters.repository;
+
+import com.hms.masters.entity.ExpenseCategory;
+import com.hms.masters.enums.Status;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface ExpenseCategoryRepository extends JpaRepository<ExpenseCategory, Long> {
+
+    boolean existsByNameIgnoreCase(String name);
+    List<ExpenseCategory> findByStatus(Status status);
+
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(e.categoryCode, 4) AS int)), 0) FROM ExpenseCategory e")
+    Integer findMaxSequence();
+}

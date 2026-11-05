@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Credit Bill</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f2f2f2;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+      font-size: 13px;
+    }
+
+    .bill-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: auto;
+      padding: 12mm 12mm 10mm;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 25% 50% 25%;
+      align-items: center;
+      border-bottom: 2px solid #111;
+      padding-bottom: 8px;
+    }
+
+    .logo {
+      max-width: 130px;
+      max-height: 95px;
+      object-fit: contain;
+    }
+
+    .left-logo {
+      justify-self: start;
+    }
+
+    .right-logo {
+      justify-self: end;
+    }
+
+    .hospital-info {
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .hospital-info h1 {
+      margin: 0;
+      font-size: 25px;
+      color: #242445;
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: 0.5px;
+    }
+
+    .hospital-info h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #242445;
+    }
+
+    .hospital-info p {
+      margin: 2px 0;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .bill-title {
+      text-align: center;
+      margin: -1px 0 8px;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 28px;
+      border-bottom: 1px solid #111;
+      padding: 2px 0 7px;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 135px 12px 1fr;
+      min-height: 24px;
+      align-items: start;
+      font-weight: 600;
+    }
+
+    .detail-row .value {
+      font-weight: normal;
+      word-break: break-word;
+    }
+
+    .patient-section {
+      border-bottom: 1px solid #111;
+      padding: 6px 0;
+    }
+
+    .insurance-section {
+      border-bottom: 1px solid #111;
+      padding: 7px 0 5px;
+    }
+
+    .section-heading {
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 5px;
+    }
+
+    .charges-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .charges-table th {
+      background: #bdbdbd;
+      text-align: left;
+      padding: 7px 8px;
+      font-size: 13px;
+    }
+
+    .charges-table th:last-child,
+    .charges-table td:last-child {
+      text-align: right;
+    }
+
+    .charges-table td {
+      padding: 8px;
+      border-bottom: 1px solid #222;
+      font-weight: 600;
+    }
+
+    .summary {
+      margin-top: 38px;
+      width: 100%;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 180px 110px;
+      min-height: 29px;
+      align-items: center;
+      border-bottom: 1px solid #222;
+    }
+
+    .summary-row .label {
+      grid-column: 2;
+      text-align: right;
+      padding-right: 18px;
+      font-weight: bold;
+    }
+
+    .summary-row .amount {
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .amount-words {
+      display: grid;
+      grid-template-columns: 135px 12px 1fr;
+      margin-top: 8px;
+      padding: 7px 8px;
+      font-weight: 600;
+    }
+
+    .approval-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+    }
+
+    .approval-table th {
+      background: #bdbdbd;
+      padding: 7px 6px;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .approval-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #222;
+      font-weight: 600;
+    }
+
+    .approval-table th:not(:first-child),
+    .approval-table td:not(:first-child) {
+      text-align: right;
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 12px;
+      min-height: 105px;
+      border-bottom: 2px solid #111;
+    }
+
+    .prepared-by {
+      line-height: 2.3;
+      font-weight: 600;
+    }
+
+    .signature {
+      text-align: right;
+      position: relative;
+    }
+
+    .signature img {
+      display: block;
+      width: 110px;
+      height: 65px;
+      object-fit: contain;
+      margin: 0 10px 0 auto;
+    }
+
+    .signature-text {
+      margin-top: -3px;
+      font-weight: bold;
+    }
+
+    .doctor-stamp {
+      text-align: right;
+      color: #087f5b;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1.25;
+      margin-top: 20px;
+      padding-right: 20px;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: #fff;
+      }
+
+      .bill-page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 10mm 12mm;
+        box-shadow: none;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bill-page" id="bill"></div>
+
+  <script>
+    /*
+      Replace these values with your own data.
+
+      Logo parameters:
+      - leftLogo: hospital logo URL, Base64 image, or local path
+      - rightLogo: accreditation/logo URL, Base64 image, or local path
+      - signatureLogo: optional signature image URL/Base64
+    */
+
+    const billData = {
+      leftLogo: "https://via.placeholder.com/160x100?text=LEFT+LOGO",
+      rightLogo: "https://via.placeholder.com/140x100?text=RIGHT+LOGO",
+      signatureLogo: "https://via.placeholder.com/120x70?text=SIGNATURE",
+
+      hospital: {
+        name: "SEN HOSPITAL",
+        subtitle: "MULTI - SPECIALITY CENTRE",
+        address: "New No.51, Old No. 18, Bunder Garden Street, Perambur, Chennai - 11.",
+        telephone: "25586896, 42769724",
+        mobile: "9600899382, 7200207833",
+        pharmacy: "8608679387",
+        email: "senhospital2@gmail.com",
+        website: "www.senhospital.in",
+        registrationNo: "CHENALL2020030927"
+      },
+
+      billTitle: "Credit - Bill",
+
+      billDetails: {
+        billNumber: "B39101",
+        billDate: "24-08-2026 01:00 PM",
+        uhid: "SEN43474",
+        ipNumber: "IP/2026/08/26711",
+        admissionDate: "22-08-2026 09:15 AM",
+        dischargeDate: "24-08-2026 01:00 PM",
+        ward: "SINGLE ROOM",
+        bedNo: "209",
+        consultant: "DR. M.VENKATESAN, MBBS., MS., MCH."
+      },
+
+      patient: {
+        name: "MRS. NANDHINI",
+        age: "27",
+        gender: "FEMALE",
+        address: "No.511 17th Block PK Colony, PATTALAM, Chennai",
+        contactNo: "9789024988"
+      },
+
+      insurance: {
+        company: "NATIONAL INSURANCE CO. LTD",
+        tpaName: "MEDI ASSIST",
+        policyNo: "604100502510001001",
+        insuredPersonName: "MRS. NANDHINI",
+        claimNo: "52026903",
+        cardNo: "5135563988"
+      },
+
+      charges: [
+        { name: "WARD CHARGES", amount: "7,200.00" },
+        { name: "SURGERY CHARGES", amount: "25,000.00" },
+        { name: "CONSULTATION CHARGES", amount: "3,000.00" },
+        { name: "X - RAY", amount: "850.00" },
+        { name: "SURGEON TEAM", amount: "30,000.00" },
+        { name: "MEDICINE CHARGES", amount: "20,990.00" }
+      ],
+
+      summary: {
+        grossAmount: "87,040.00",
+        discountAmount: "8,704.00",
+        billAmount: "78,336.00",
+        amountInWords: "Seventy-Eight Thousand Three Hundred Thirty-Six Only"
+      },
+
+      approval: {
+        date: "24-08-2026 01:00",
+        authorizedAmount: "71,056.00",
+        coPaymentAmount: "3,553.00",
+        claimApprovedAmount: "67,503.00"
+      },
+
+      preparedBy: "VIJAYA",
+      verifiedBy: "THIYAGARAJAN.P",
+
+      doctor: {
+        name: "DR. M. VENKATESAN, MS., M.Ch.,",
+        designation: "Medical Director",
+        registrationNo: "63042",
+        hospitalName: "SEN HOSPITAL",
+        address: "No. 18, Bunder Garden Street, Perambur, Chennai - 600 011."
+      }
+    };
+
+    const d = billData;
+
+    document.getElementById("bill").innerHTML = `
+      <div class="header">
+        <img class="logo left-logo" src="${d.leftLogo}" alt="Left Logo">
+
+        <div class="hospital-info">
+          <h1>${d.hospital.name}</h1>
+          <h2>${d.hospital.subtitle}</h2>
+          <p>${d.hospital.address}</p>
+          <p>
+            Tel : ${d.hospital.telephone}
+            &nbsp;&nbsp; Cell : ${d.hospital.mobile}
+          </p>
+          <p>Pharmacy : ${d.hospital.pharmacy}</p>
+          <p>
+            Email : ${d.hospital.email}
+            &nbsp;&nbsp; ${d.hospital.website}
+          </p>
+        </div>
+
+        <img class="logo right-logo" src="${d.rightLogo}" alt="Right Logo">
+      </div>
+
+      <div class="bill-title">${d.billTitle}</div>
+
+      <div class="details-grid">
+        <div>
+          <div class="detail-row">
+            <b>Bill Number</b><span>:</span><span class="value">${d.billDetails.billNumber}</span>
+          </div>
+          <div class="detail-row">
+            <b>UHID</b><span>:</span><span class="value">${d.billDetails.uhid}</span>
+          </div>
+          <div class="detail-row">
+            <b>Admission Date</b><span>:</span><span class="value">${d.billDetails.admissionDate}</span>
+          </div>
+          <div class="detail-row">
+            <b>Ward</b><span>:</span><span class="value">${d.billDetails.ward}</span>
+          </div>
+          <div class="detail-row">
+            <b>Consultant</b><span>:</span><span class="value">${d.billDetails.consultant}</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="detail-row">
+            <b>Bill Date</b><span>:</span><span class="value">${d.billDetails.billDate}</span>
+          </div>
+          <div class="detail-row">
+            <b>IP Number</b><span>:</span><span class="value">${d.billDetails.ipNumber}</span>
+          </div>
+          <div class="detail-row">
+            <b>Discharge Date</b><span>:</span><span class="value">${d.billDetails.dischargeDate}</span>
+          </div>
+          <div class="detail-row">
+            <b>Bed No</b><span>:</span><span class="value">${d.billDetails.bedNo}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-section">
+        <div class="detail-row">
+          <b>Patient Name</b><span>:</span>
+          <span class="value">
+            ${d.patient.name} &nbsp;&nbsp; ${d.patient.age} / ${d.patient.gender}
+          </span>
+        </div>
+        <div class="detail-row">
+          <b>Address</b><span>:</span><span class="value">${d.patient.address}</span>
+        </div>
+        <div class="detail-row">
+          <b>Contact No</b><span>:</span><span class="value">${d.patient.contactNo}</span>
+        </div>
+      </div>
+
+      <div class="insurance-section">
+        <div class="section-heading">Insurance Details :</div>
+
+        <div class="details-grid" style="border:0; padding:0;">
+          <div>
+            <div class="detail-row">
+              <b>Company / TPA Name</b><span>:</span>
+              <span class="value">${d.insurance.company} / ${d.insurance.tpaName}</span>
+            </div>
+            <div class="detail-row">
+              <b>Insured Person Name</b><span>:</span>
+              <span class="value">${d.insurance.insuredPersonName}</span>
+            </div>
+            <div class="detail-row">
+              <b>Card No</b><span>:</span>
+              <span class="value">${d.insurance.cardNo}</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="detail-row">
+              <b>Policy No</b><span>:</span><span class="value">${d.insurance.policyNo}</span>
+            </div>
+            <div class="detail-row">
+              <b>Claim No</b><span>:</span><span class="value">${d.insurance.claimNo}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="charges-table">
+        <thead>
+          <tr>
+            <th>PARTICULARS</th>
+            <th>TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${d.charges.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.amount}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <div class="summary">
+        <div class="summary-row">
+          <div></div>
+          <div class="label">Gross Amount:</div>
+          <div class="amount">${d.summary.grossAmount}</div>
+        </div>
+
+        <div class="summary-row">
+          <div></div>
+          <div class="label">Discount Amount:</div>
+          <div class="amount">${d.summary.discountAmount}</div>
+        </div>
+
+        <div class="summary-row">
+          <div></div>
+          <div class="label">Bill Amount:</div>
+          <div class="amount">${d.summary.billAmount}</div>
+        </div>
+      </div>
+
+      <div class="amount-words">
+        <b>In Words</b>
+        <span>:</span>
+        <span>${d.summary.amountInWords}</span>
+      </div>
+
+      <table class="approval-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Authorized Amount</th>
+            <th>Co Payment Amount</th>
+            <th>Claim Approved Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${d.approval.date}</td>
+            <td>${d.approval.authorizedAmount}</td>
+            <td>${d.approval.coPaymentAmount}</td>
+            <td>${d.approval.claimApprovedAmount}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        <div class="prepared-by">
+          <div>Bill Prepared By &nbsp;&nbsp; : &nbsp; ${d.preparedBy}</div>
+          <div>Bill Verified By &nbsp;&nbsp;&nbsp; : &nbsp; ${d.verifiedBy}</div>
+        </div>
+
+        <div class="signature">
+          <div>For &nbsp; <b>${d.hospital.name}</b></div>
+          <img src="${d.signatureLogo}" alt="Authorized Signature">
+          <div class="signature-text">Authorized Signatory</div>
+        </div>
+      </div>
+
+     
+    `;
+  </script>
+</body>
+</html>

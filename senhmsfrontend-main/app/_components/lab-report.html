@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEN Hospital – Laboratory Report</title>
+  <style>
+
+    /* ==============================================
+       PAGE CONFIGURATION
+    ============================================== */
+    @page {
+      size: A4 portrait;
+      margin: 8mm 6mm 8mm 6mm;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #fff;
+      color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .report {
+      width: 100%;
+      max-width: 210mm;
+      min-height: 281mm;
+      margin: 0 auto;
+      padding: 0;
+      position: relative;
+    }
+
+    /* ==============================================
+       HEADER  — Logo left, hospital info right
+       Matches ZN layout but with SEN branding
+    ============================================== */
+    .report-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      min-height: 38mm;
+      padding: 3mm 2mm 4mm;
+      border-bottom: 2.5px solid #1a1a5e;
+      gap: 4mm;
+    }
+
+    .logo-area {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      width: 28mm;
+    }
+
+    .company-logo {
+      width: 26mm;
+      height: 26mm;
+      object-fit: contain;
+    }
+
+    .reg-no {
+      font-size: 7pt;
+      font-weight: 600;
+      color: #333;
+      margin-top: 1mm;
+      white-space: nowrap;
+    }
+
+    .company-info {
+      flex: 1;
+      text-align: center;
+      color: #1a1a5e;
+      line-height: 1.35;
+    }
+
+    .company-name {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: bold;
+      font-size: 20pt;
+      line-height: 1.15;
+      letter-spacing: 0.3px;
+      margin-bottom: 1mm;
+    }
+
+    .company-tagline {
+      font-size: 11pt;
+      font-weight: 700;
+      margin-bottom: 2mm;
+    }
+
+    .company-address {
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: #111;
+      line-height: 1.5;
+    }
+
+    .seal-area {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      width: 22mm;
+    }
+
+    .company-seal {
+      width: 20mm;
+      height: 20mm;
+      object-fit: contain;
+    }
+
+    /* ==============================================
+       PATIENT INFORMATION  — 3-column grid
+       Left: Name/ID/RefBy/SentBy
+       Middle: Age/Sex, Printed
+       Right: Barcode + timestamps
+    ============================================== */
+    .patient-section {
+      padding: 3mm 6mm 3mm;
+      border-bottom: 1px solid #aaa;
+    }
+
+    .patient-layout {
+      display: grid;
+      grid-template-columns: 34% 25% 41%;
+      column-gap: 0;
+      align-items: start;
+    }
+
+    .patient-column {
+      min-width: 0;
+      padding-right: 2mm;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 28mm 5mm minmax(0, 1fr);
+      align-items: baseline;
+      min-height: 6.5mm;
+      font-size: 10.5pt;
+      line-height: 1.35;
+    }
+
+    .info-label  { font-weight: bold; white-space: nowrap; }
+    .info-colon  { font-weight: bold; }
+    .info-value  { overflow-wrap: anywhere; font-weight: 600; }
+
+    .barcode-area {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-bottom: 3mm;
+    }
+
+    .barcode-image {
+      width: 48mm;
+      height: 10mm;
+      object-fit: fill;
+    }
+
+    .barcode-number {
+      font-size: 7pt;
+      text-align: right;
+      width: 48mm;
+      letter-spacing: 0.5px;
+    }
+
+    /* ==============================================
+       REPORT TITLE  (category heading — centered
+       italic bold, with border lines above/below)
+       Maps to: LabReportTest.category
+    ============================================== */
+    .report-title {
+      margin: 0 6mm;
+      border-top: 1.5px solid #555;
+      border-bottom: 1.5px solid #555;
+      text-align: center;
+      padding: 2mm 1mm;
+      font-size: 13pt;
+      font-weight: bold;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ==============================================
+       RESULTS TABLE
+    ============================================== */
+    .results-table {
+      width: calc(100% - 12mm);
+      margin: 0 6mm;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .results-table col.test-col   { width: 38%; }
+    .results-table col.result-col { width: 12%; }
+    .results-table col.unit-col   { width: 17%; }
+    .results-table col.range-col  { width: 33%; }
+
+    /* Column header row */
+    .results-table thead th {
+      font-weight: 700;
+      font-size: 10.5pt;
+      text-align: left;
+      padding: 1.5mm 1mm 1.5mm 0;
+      border-bottom: 1px solid #888;
+    }
+
+    /* All data cells */
+    .results-table tbody td {
+      vertical-align: top;
+      padding: 1mm 1mm 1mm 0;
+      font-size: 10.5pt;
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
+
+    /* ── TEST-NAME BAND  (LabReportTest.testName)
+       e.g. "COMPLETE BLOOD COUNT" shown under the category
+       — centered, underlined, separator above it
+       Maps to: <tr class="panel-head-row">            */
+    .panel-head-row td {
+      text-align: center;
+      font-weight: 700;
+      font-size: 11pt;
+      text-decoration: underline;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 2.5mm 0 1mm;
+      border-top: 1px dashed #bbb;
+    }
+    /* No top border when panel immediately follows its own category title */
+    .report-title + table .panel-head-row:first-child td,
+    tbody tr.panel-head-row:first-child td {
+      border-top: none;
+    }
+
+    /* ── SUB-GROUP HEADER  (LabReportTest.subGroup)
+       e.g. "DIFFERENTIAL COUNT:", "PROTHROMBIN TIME"
+       — bold + underline, left-aligned
+       Maps to: <tr class="subgroup-row">              */
+    .subgroup-row td {
+      font-weight: bold;
+      font-size: 10.5pt;
+      text-decoration: underline;
+      text-transform: uppercase;
+      padding: 2mm 0 1mm;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── NORMAL PARAMETER ROW  (investigationName)
+       Maps to: <tr class="param-row">                 */
+    .param-row td.test-name  { padding-right: 2mm; font-weight: 600; }
+    .param-row td.result-value {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .param-row td.result-value.abnormal { color: #c00000; }
+    .param-row td.unit-value  { padding-left: 1mm; }
+    .param-row td.range-value {
+      padding-left: 1mm;
+      font-size: 9.5pt;
+      line-height: 1.5;
+      white-space: pre-wrap;   /* preserves \n for multi-line ranges */
+      word-break: break-word;
+    }
+
+    /* Indented parameter — sits under a subGroup */
+    .param-row.indented td.test-name { padding-left: 5mm; }
+
+    /* ── METHOD / SPECIMEN ANNOTATION ROWS ── */
+    .method-row td,
+    .specimen-row td {
+      font-size: 7.5pt;
+      padding: 0.5mm 0;
+      line-height: 1.3;
+      color: #444;
+    }
+
+    /* ── TEXT-ONLY ROW  (NOTE, ADVICE, etc.)
+       Maps to rows where result is null/empty and the
+       value is carried in the name field               */
+    .text-label-row td.text-label {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .text-label-row td.text-body {
+      font-weight: 600;
+    }
+
+    /* ── COMMENT / NARRATIVE BLOCK
+       Bordered italic box — HbA1c explanation,
+       clinical significance, criteria text            */
+    .comment-row td {
+      padding: 2mm 3mm;
+      font-size: 9pt;
+      font-style: italic;
+      line-height: 1.55;
+      border: 1px solid #bbb;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .comment-row td .comment-title {
+      font-weight: bold;
+      font-style: normal;
+      font-size: 9.5pt;
+      display: block;
+      margin-bottom: 1mm;
+      text-decoration: underline;
+    }
+
+    /* ── TIMING LINE
+       "(Collected At: … Reported At: …)"             */
+    .timing-row td {
+      font-size: 8pt;
+      font-style: italic;
+      color: #555;
+      padding: 2mm 0 1mm;
+    }
+
+    /* ── END-OF-REPORT DIVIDER ── */
+    .eor-row td {
+      text-align: center;
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: #444;
+      padding: 2mm 0 3mm;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── MALE/FEMALE SPLIT RANGE DISPLAY ── */
+    .nv-line { display: block; }
+    .nv-sex  { display: inline-block; min-width: 50px; font-weight: 700; }
+
+    /* ── AGE-BANDED RANGE (AGE_BANDS: prefix format) ── */
+    .nv-age-head   { font-weight: 700; font-style: italic; }
+    .nv-age-lbl    { display: inline-block; min-width: 120px; }
+    .nv-age-active {
+      font-weight: 800;
+      background: #fff9c4;
+      border-radius: 2px;
+      padding: 0 2px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ==============================================
+       SIGNATURES
+    ============================================== */
+    .report-footer {
+      margin: 5mm 0 0;
+      padding: 0 6mm;
+    }
+
+    .footer-signatures {
+      display: grid;
+      grid-template-columns: 1fr 0.7fr 1fr;
+      align-items: end;
+      gap: 4mm;
+      min-height: 22mm;
+    }
+
+    .signature-block { font-size: 9pt; line-height: 1.25; }
+
+    .signature-image {
+      display: block;
+      width: 26mm;
+      height: 12mm;
+      object-fit: contain;
+      object-position: left bottom;
+      margin-bottom: 1mm;
+    }
+
+    .signature-name { font-weight: 700; }
+    .signature-role { font-size: 8.5pt; color: #333; }
+
+    .certification-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cert-inner { text-align: center; }
+
+    .certification-image {
+      width: 18mm;
+      height: 18mm;
+      object-fit: contain;
+    }
+
+    .qr-image {
+      width: 14mm;
+      height: 14mm;
+      object-fit: contain;
+    }
+
+    .page-number {
+      font-size: 9pt;
+      margin-top: 1mm;
+      text-align: center;
+    }
+
+    /* ==============================================
+       BOTTOM FOOTER BAR
+    ============================================== */
+    .footer-bottom {
+      border-top: 2px solid #1a1a5e;
+      margin-top: 2mm;
+      padding-top: 1mm;
+      text-align: center;
+      font-size: 8pt;
+      line-height: 1.4;
+    }
+
+    .home-collection {
+      color: #c00000;
+      font-size: 11pt;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+    }
+
+    /* ==============================================
+       PRINT
+    ============================================== */
+    @media print {
+      body { background: #fff; }
+      .report { width: 100%; max-width: none; min-height: 0; }
+      .no-print { display: none !important; }
+      .results-table tr { break-inside: avoid; page-break-inside: avoid; }
+      .report-header, .patient-section, .report-title { break-inside: avoid; }
+    }
+
+    @media screen and (max-width: 700px) {
+      .report-header  { align-items: flex-start; }
+      .company-logo   { width: 18mm; height: 18mm; }
+      .company-name   { font-size: 13pt; white-space: normal; }
+      .company-address{ font-size: 8pt; }
+      .patient-section{ padding-left: 2mm; padding-right: 2mm; }
+      .patient-layout { grid-template-columns: 1fr; }
+      .results-table  { width: 100%; margin: 0; }
+      .report-title   { margin: 0; }
+      .report-footer  { padding: 0 2mm; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="report" id="lab-report">
+
+  <!-- ================================================
+       HEADER — SEN Hospital branding
+  ================================================ -->
+  <header class="report-header">
+
+    <div class="logo-area">
+      <!-- Replace src with real logo path or base64 -->
+      <img src="/images/sen-logo.png" alt="SEN Hospital Logo" class="company-logo"
+           onerror="this.style.display='none'">
+      <div class="reg-no">Regd. No.: CHENALL20210030927</div>
+    </div>
+
+    <div class="company-info">
+      <div class="company-name">SEN HOSPITAL</div>
+      <div class="company-tagline">MULTI – SPECIALITY CENTRE</div>
+      <div class="company-address">
+        New No.51, Old No.18, Bunder Garden Street, Perambur, Chennai – 600 011.<br>
+        Tel: 25586896, 42769724 &nbsp;&nbsp; Cell: 9600899382, 7200207833<br>
+        Pharmacy: 8608679387 &nbsp;&nbsp; Email: senhospital2@gmail.com &nbsp;&nbsp; www.senhospital.in
+      </div>
+    </div>
+
+    <div class="seal-area">
+      <!-- Replace src with NABH/ISO seal path or base64 -->
+      <img src="/images/nabh-seal.png" alt="NABH Seal" class="company-seal"
+           onerror="this.style.display='none'">
+    </div>
+
+  </header>
+
+  <!-- ================================================
+       PATIENT INFORMATION
+       Replace static values with JS-injected data
+       when using buildLabReportHtml()
+  ================================================ -->
+  <section class="patient-section">
+    <div class="patient-layout">
+
+      <!-- LEFT COLUMN -->
+      <div class="patient-column">
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">MR. SENTHIL NATHAN</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Patient ID</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">SEN43474</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Ref. By</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">Self</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Sent By</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">VIJAYA LAB</span>
+        </div>
+      </div>
+
+      <!-- MIDDLE COLUMN -->
+      <div class="patient-column">
+        <div class="info-row">
+          <span class="info-label">Age / Sex</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">47 Yrs. / M</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Doctor</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">Dr. M. Venkatesan</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">IP / OP No.</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Printed</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">15/02/2026 20:28</span>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN — barcode + timestamps -->
+      <div class="patient-column">
+        <div class="barcode-area">
+          <!--
+            In buildLabReportHtml() this is replaced with:
+              <img src="${barcodeDataUrl}" …>
+            The barcode is generated client-side via JsBarcode.
+          -->
+          <img src="" alt="barcode" class="barcode-image"
+               style="border:1px dashed #ccc; opacity:.4;"
+               onerror="this.style.display='none'">
+          <div class="barcode-number">SEN43474</div>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Lab Test ID</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">LAB/2026/001</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Sample Collected</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">15/02/2026 13:10</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Sample Received</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">15/02/2026 13:10</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Report Completed</span>
+          <span class="info-colon">:</span>
+          <span class="info-value">15/02/2026 17:37</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================
+       SECTION 1 — COMPLETE BLOOD COUNT
+       Demonstrates: category → testName → subGroup → param
+  ================================================ -->
+
+  <!--
+    Maps to: LabReportTest.category
+    Rendered by: <tr class="cat-row"> (group-head in lab-report.ts)
+  -->
+  <div class="report-title">COMPLETE BLOOD COUNT</div>
+
+  <table class="results-table">
+    <colgroup>
+      <col class="test-col">
+      <col class="result-col">
+      <col class="unit-col">
+      <col class="range-col">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Result</th>
+        <th>Unit</th>
+        <th>Reference Range</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!--
+        testName band: LabReportTest.testName = "HAEMATOLOGY"
+        → <tr class="panel-head-row">
+      -->
+      <!-- (For single-panel tests like CBC, testName is often same as category;
+           omit this row if testName == category to avoid duplication) -->
+
+      <!-- NORMAL PARAMETERS — LabReportTest with no subGroup -->
+      <tr class="param-row">
+        <td class="test-name">Haemoglobin</td>
+        <td class="result-value abnormal">13.4</td>
+        <td class="unit-value">gm%</td>
+        <td class="range-value">13.5 – 17.0 gm%</td>
+      </tr>
+      <tr class="method-row">
+        <td colspan="4">(Method: Cyanide-free SLS method) &nbsp; (Specimen: EDTA whole Blood)</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">W.B.C. Count</td>
+        <td class="result-value abnormal">11940</td>
+        <td class="unit-value">cells/cumm</td>
+        <td class="range-value">4000 – 10000 cells/cumm</td>
+      </tr>
+      <tr class="method-row">
+        <td colspan="4">(Method: WB/Automated) &nbsp; (Specimen: EDTA whole Blood)</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">R.B.C. Count</td>
+        <td class="result-value">4.62</td>
+        <td class="unit-value">millions/cumm</td>
+        <td class="range-value">4.5 – 5.5 millions/cumm</td>
+      </tr>
+      <tr class="method-row">
+        <td colspan="4">(Method: DC Impedance) &nbsp; (Specimen: EDTA whole Blood)</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">PCV</td>
+        <td class="result-value">40.5</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">40 – 50 %</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">MCV</td>
+        <td class="result-value">87.8</td>
+        <td class="unit-value">fL</td>
+        <td class="range-value">80 – 100 fL</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">MCH</td>
+        <td class="result-value">29.0</td>
+        <td class="unit-value">pg</td>
+        <td class="range-value">26 – 34 pg</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">MCHC</td>
+        <td class="result-value">33.0</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">31 – 37 %</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">MPV</td>
+        <td class="result-value">8.8</td>
+        <td class="unit-value">fL</td>
+        <td class="range-value">3 – 12 fL</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">RDW-SD</td>
+        <td class="result-value">44.50</td>
+        <td class="unit-value">fL</td>
+        <td class="range-value">39 – 46 fL</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">RDW-CV</td>
+        <td class="result-value">12.8</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">11 – 14.5 %</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">Platelet Count</td>
+        <td class="result-value">4.30</td>
+        <td class="unit-value">Lakhs/cumm</td>
+        <td class="range-value">1.5 – 4.5 Lakhs/cumm</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">PCT</td>
+        <td class="result-value">0.379</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">0.08 – 1.00 %</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">PLCR</td>
+        <td class="result-value abnormal">17.00</td>
+        <td class="unit-value"></td>
+        <td class="range-value">19.7 – 42.4</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">PDW</td>
+        <td class="result-value">15.7</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">10 – 20 %</td>
+      </tr>
+
+      <!--
+        SUB-GROUP HEADER — LabReportTest.subGroup = "DIFFERENTIAL COUNT"
+        → <tr class="subgroup-row">
+      -->
+      <tr class="subgroup-row">
+        <td colspan="4">DIFFERENTIAL COUNT:</td>
+      </tr>
+
+      <!-- Indented parameters under subGroup -->
+      <tr class="param-row indented">
+        <td class="test-name">Neutrophils</td>
+        <td class="result-value">64.6</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">40 – 80 %</td>
+      </tr>
+      <tr class="method-row">
+        <td colspan="4">(Method: Calculated) &nbsp; (Specimen: EDTA whole Blood)</td>
+      </tr>
+
+      <tr class="param-row indented">
+        <td class="test-name">Lymphocytes</td>
+        <td class="result-value">27.4</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">20 – 40 %</td>
+      </tr>
+
+      <tr class="param-row indented">
+        <td class="test-name">Eosinophils</td>
+        <td class="result-value">1.5</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">1 – 6 %</td>
+      </tr>
+
+      <tr class="param-row indented">
+        <td class="test-name">Monocytes</td>
+        <td class="result-value">6.2</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">2 – 10 %</td>
+      </tr>
+
+      <tr class="param-row indented">
+        <td class="test-name">Basophils</td>
+        <td class="result-value">0.3</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">0 – 2 %</td>
+      </tr>
+
+      <tr class="param-row indented">
+        <td class="test-name">nRBCs</td>
+        <td class="result-value">0.00</td>
+        <td class="unit-value">/100 WBCs</td>
+        <td class="range-value">0 – 2 /100 WBCs</td>
+      </tr>
+
+      <!--
+        Another sub-group — LabReportTest.subGroup = "SMEAR EXAMINATION"
+      -->
+      <tr class="subgroup-row">
+        <td colspan="4">SMEAR EXAMINATION</td>
+      </tr>
+
+      <!--
+        TEXT-ONLY ROW — result is null, investigationName carries the label
+        Maps to: LabReportTest where result is a plain text annotation
+        → rendered with .text-label-row
+      -->
+      <tr class="text-label-row">
+        <td class="text-label">ADVICE</td>
+        <td class="text-body" colspan="3">Kindly correlate clinically</td>
+      </tr>
+
+      <!-- Timing line -->
+      <tr class="timing-row">
+        <td colspan="4">
+          (Collected At: 15/02/2026 13:10:44, &nbsp; Received At: 15/02/2026 13:10:44, &nbsp; Reported At: 15/02/2026 17:37:43)
+        </td>
+      </tr>
+
+      <tr class="eor-row">
+        <td colspan="4">──────────────── End Of Report ────────────────</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- ================================================
+       SECTION 2 — CLINICAL BIOCHEMISTRY (HbA1c)
+       Demonstrates: multi-line interpretive range + comment block
+  ================================================ -->
+  <div class="report-title">CLINICAL BIOCHEMISTRY</div>
+
+  <table class="results-table">
+    <colgroup>
+      <col class="test-col">
+      <col class="result-col">
+      <col class="unit-col">
+      <col class="range-col">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Result</th>
+        <th>Unit</th>
+        <th>Biological Ref Range</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!--
+        Multi-line interpretive reference range.
+        In buildLabReportHtml() normalRange stores the text with \n chars.
+        The renderer does: range.replace(/\n/g, "<br/>")
+        so each tier appears on its own line in the range column.
+      -->
+      <tr class="param-row">
+        <td class="test-name">Glycosylated Hemoglobin (HbA1c)</td>
+        <td class="result-value abnormal">8.7</td>
+        <td class="unit-value">%</td>
+        <td class="range-value">&gt;6.5 DIABETIC<br>5.7–6.4 PRE DIABETIC<br>&lt;5.7 NON DIABETIC</td>
+      </tr>
+
+      <tr class="param-row">
+        <td class="test-name">Mean Blood Glucose</td>
+        <td class="result-value abnormal">203</td>
+        <td class="unit-value">mg/dl</td>
+        <td class="range-value">90–120 : Excellent Control<br>121–150 : Good Control<br>151–180 : Average Control<br>181–210 : Action Suggested<br>&gt;211 : Panic Value</td>
+      </tr>
+
+      <!-- Text row for NOTE -->
+      <tr class="text-label-row">
+        <td class="text-label">NOTE</td>
+        <td class="text-body" colspan="3">Kindly correlate clinically</td>
+      </tr>
+
+      <!--
+        COMMENT BLOCK — bordered italic narrative.
+        Maps to the `notes` / interpretive text stored on the lab master
+        or appended manually. In the TS renderer this becomes a colspan=4
+        cell with class "comment-row".
+      -->
+      <tr class="comment-row">
+        <td colspan="4">
+          <span class="comment-title">Comments:</span>HbA1c is an indicator of glycemic control.
+HbA1c represents average Glycemia over the past six to eight weeks. Glycation of Hemoglobin
+occurs over the entire 120 day life span of the Red Blood Cell.
+
+Clinical studies suggest that a patient in stable control will have 50% of their HbA1c formed
+in the month before sampling, 25% in the month before that, and the remaining 25% in months
+two to four.
+
+Mean Plasma Glucose mg/dL = 28.7 × A1C – 46.7.
+
+As per IFCC recommendations 2007, HbA1c is reported maintaining traceability to both IFCC
+(mmol/mol) &amp; NGSP (%) units.
+
+Correlate Clinically.</td>
+      </tr>
+
+      <tr class="timing-row">
+        <td colspan="4">
+          (Collected At: 15/02/2026 13:10:44, &nbsp; Received At: 15/02/2026 13:10:44, &nbsp; Reported At: 15/02/2026 17:37:43)
+        </td>
+      </tr>
+      <tr class="eor-row">
+        <td colspan="4">──────────────── End Of Report ────────────────</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- ================================================
+       SECTION 3 — ELECTROLYTE
+       Demonstrates: simple panel, multiple params, no subGroup
+  ================================================ -->
+  <div class="report-title">ELECTROLYTE</div>
+
+  <table class="results-table">
+    <colgroup>
+      <col class="test-col">
+      <col class="result-col">
+      <col class="unit-col">
+      <col class="range-col">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Result</th>
+        <th>Unit</th>
+        <th>Biological Ref. Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="param-row">
+        <td class="test-name">S. Sodium</td>
+        <td class="result-value">136.90</td>
+        <td class="unit-value">mEq/L</td>
+        <td class="range-value">136 – 150 mEq/L</td>
+      </tr>
+      <tr class="param-row">
+        <td class="test-name">S. Potassium</td>
+        <td class="result-value">3.80</td>
+        <td class="unit-value">mEq/L</td>
+        <td class="range-value">3.5 – 5.0 mEq/L</td>
+      </tr>
+      <tr class="param-row">
+        <td class="test-name">S. Chlorides</td>
+        <td class="result-value">101.60</td>
+        <td class="unit-value">mEq/L</td>
+        <td class="range-value">95 – 110 mEq/L</td>
+      </tr>
+      <tr class="param-row">
+        <td class="test-name">Bicarbonate</td>
+        <td class="result-value">22.80</td>
+        <td class="unit-value">mmol/L</td>
+        <td class="range-value">22 – 29 mmol/L</td>
+      </tr>
+      <tr class="text-label-row">
+        <td class="text-label">NOTE</td>
+        <td class="text-body" colspan="3">Test done with FULLY AUTOMATED ELECTROLYTE ANALYSER</td>
+      </tr>
+      <tr class="timing-row">
+        <td colspan="4">
+          (Collected At: 15/02/2026 13:10:44, &nbsp; Received At: 15/02/2026 13:10:44, &nbsp; Reported At: 15/02/2026 17:37:43)
+        </td>
+      </tr>
+      <tr class="eor-row">
+        <td colspan="4">──────────────── End Of Report ────────────────</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ================================================
+       SECTION 4 — CLINICAL BIOCHEMISTRY (Blood Urea)
+       Demonstrates: age+gender banded reference range
+       In TS this comes from normalRange = "AGE_BANDS:…"
+       formatAgeBandsHtml() renders it; here we show the
+       manual HTML equivalent.
+  ================================================ -->
+  <div class="report-title">CLINICAL BIOCHEMISTRY</div>
+
+  <table class="results-table">
+    <colgroup>
+      <col class="test-col">
+      <col class="result-col">
+      <col class="unit-col">
+      <col class="range-col">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Result</th>
+        <th>Unit</th>
+        <th>Biological Ref. Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!--
+        AGE-BANDED range — stored as:
+          AGE_BANDS:0-12=11–36 mg/dl|13-50=19–45 mg/dl|51-999=18–55 mg/dl
+        formatAgeBandsHtml() outputs .nv-line spans, one per band.
+        The active band for the patient is highlighted .nv-age-active.
+      -->
+      <tr class="param-row">
+        <td class="test-name">Blood Urea (urease)</td>
+        <td class="result-value">14.40</td>
+        <td class="unit-value">mg/dl</td>
+        <td class="range-value">
+          <span class="nv-line nv-age-head">Age cut-off value</span>
+          <span class="nv-line">
+            <span class="nv-age-lbl">Women &lt;50 yrs</span> : 13 – 40 mg/dl
+          </span>
+          <span class="nv-line">
+            <span class="nv-age-lbl">Women &gt;50 yrs</span> : 21 – 43 mg/dl
+          </span>
+          <!--
+            Patient is 47 Yr Male → Men <50 yrs band is active → nv-age-active
+          -->
+          <span class="nv-line nv-age-active">
+            <span class="nv-age-lbl">Men &lt;50 yrs</span> : 19 – 45 mg/dl
+          </span>
+          <span class="nv-line">
+            <span class="nv-age-lbl">Men &gt;50 yrs</span> : 18 – 55 mg/dl
+          </span>
+          <span class="nv-line">
+            <span class="nv-age-lbl">Children 1–3 yrs</span> : 11 – 36 mg/dl
+          </span>
+          <span class="nv-line">
+            <span class="nv-age-lbl">4–13 yrs</span> : 15 – 36 mg/dl
+          </span>
+          <span class="nv-line">
+            <span class="nv-age-lbl">14–19 yrs</span> : 18 – 45 mg/dl
+          </span>
+        </td>
+      </tr>
+      <tr class="timing-row">
+        <td colspan="4">
+          (Collected At: 15/02/2026 13:10:44, &nbsp; Received At: 15/02/2026 13:10:44, &nbsp; Reported At: 15/02/2026 17:37:43)
+        </td>
+      </tr>
+      <tr class="eor-row">
+        <td colspan="4">──────────────── End Of Report ────────────────</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ================================================
+       SIGNATURES / QR / CERTIFICATION
+  ================================================ -->
+  <footer class="report-footer">
+
+    <div class="footer-signatures">
+
+      <!-- LEFT — Lab Incharge -->
+      <div class="signature-block">
+        <img src="/images/lab-incharge-sig.png" alt="Signature"
+             class="signature-image" onerror="this.style.display='none'">
+        <div class="signature-name">Mrs. Keerthana, B.Sc., DMLT.</div>
+        <div class="signature-role">Lab Incharge</div>
+      </div>
+
+      <!-- CENTER — QR + page number -->
+      <div class="certification-block">
+        <div class="cert-inner">
+          <img src="/images/nabh-seal.png" alt="Certification"
+               class="certification-image" onerror="this.style.display='none'">
+          <div class="page-number">Page 1 of 1</div>
+        </div>
+      </div>
+
+      <!-- RIGHT — Medical Director -->
+      <div class="signature-block" style="text-align:right;">
+        <img src="/images/md-signature.png" alt="Signature"
+             class="signature-image"
+             style="object-position:right bottom; margin-left:auto;"
+             onerror="this.style.display='none'">
+        <div class="signature-name">Dr. M. Venkatesan, MS., M.Ch.,</div>
+        <div>Regd. No.: 63042</div>
+        <div class="signature-role">Medical Director</div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM FOOTER BAR -->
+    <div class="footer-bottom">
+      <div>
+        **This is a computer-generated laboratory report.
+        The results pertain to the sample received.
+      </div>
+      <div class="home-collection">
+        FOR HOME COLLECTION : 9600899382 / 7200207833
+      </div>
+    </div>
+
+  </footer>
+
+</div><!-- /.report -->
+</body>
+</html>
