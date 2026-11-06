@@ -132,6 +132,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/case-sheet/**").hasAnyRole(MD, AD, DR, RC, IC, NU, LIR)
                 .requestMatchers("/case-sheet/**").hasAnyRole(MD, AD, DR, NU)
 
+                // ── Chatbot — diet plans for clinical roles; data questions are checked per tool in the service
+                .requestMatchers(HttpMethod.POST, "/chatbot/diet-plan").hasAnyRole(MD, AD, DR, NU)
+                .requestMatchers("/chatbot/**").authenticated()
+
                 // ── Prescriptions (voice dictation draft + confirmed save) ───
                 .requestMatchers(HttpMethod.GET, "/prescriptions/**").hasAnyRole(MD, AD, DR, RC, IC, NU, LIR)
                 .requestMatchers("/prescriptions/**").hasAnyRole(MD, AD, DR)

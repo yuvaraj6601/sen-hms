@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession, logout, isTabAuthenticated, clearTabAuth, type Session } from "../_lib/auth";
 import Sidebar from "../_components/Sidebar";
 import Header from "../_components/Header";
+import ChatBot from "../_components/chatbot/ChatBot";
 import { useIdleTimeout } from "../_hooks/useIdleTimeout";
 
 // Idle timeout: 15 minutes of inactivity triggers the lock overlay
@@ -144,6 +145,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+
+      {/* ── AI assistant (bottom-right) ─────────────────────────────────── */}
+      <ChatBot role={session.role} />
 
       {/* ── Idle Warning Overlay ─────────────────────────────────────────── */}
       {idleState === "warning" && (
