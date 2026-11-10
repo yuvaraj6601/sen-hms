@@ -58,11 +58,12 @@ app:
     # Override with APP_UPLOAD_DIR when deploying
     dir: "${APP_UPLOAD_DIR:D:/GitHubAjay/}"
 
-  # OpenAI (voice prescription). Key comes ONLY from the OPENAI_API_KEY env var.
+  # OpenAI (voice + handwritten prescription). Key comes ONLY from the OPENAI_API_KEY env var.
   openai:
     api-key: "${OPENAI_API_KEY:}"
     transcribe-model: "${OPENAI_TRANSCRIBE_MODEL:gpt-4o-transcribe}"
     draft-model: "${OPENAI_DRAFT_MODEL:gpt-4o-mini}"
+    vision-model: "${OPENAI_VISION_MODEL:gpt-4o}"
 
 # CORS configuration
 cors:

@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -38,6 +39,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class PrescriptionService {
 
     static final long MAX_AUDIO_BYTES = 10L * 1024 * 1024;
+    static final long MAX_IMAGE_BYTES = 10L * 1024 * 1024;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
     private final PrescriptionRepository repo;
     private final PatientRepository patientRepo;
@@ -79,6 +82,39 @@ public class PrescriptionService {
         return draft;
     }
 
+    // ── Handwritten image → draft (NOT persisted, image is not stored) ────────
+
+    public VoiceDraftResponse createImageDraft(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new IllegalArgumentException("Prescription image is required");
+        }
+        String contentType = image.getContentType() == null ? "" : image.getContentType().toLowerCase();
+        if (contentType.equals("image/jpg")) contentType = "image/jpeg";
+        if (!IMAGE_TYPES.contains(contentType)) {
+            throw new IllegalArgumentException("Only JPG, PNG or WEBP images are accepted");
+        }
+        if (image.getSize() > MAX_IMAGE_BYTES) {
+            throw new IllegalArgumentException("Image is too large (max 10 MB)");
+        }
+        byte[] bytes;
+        try {
+            bytes = image.getBytes();
+        } catch (IOException ex) {
+            log.error("[PRESCRIPTION] could not read uploaded image", ex);
+            throw new IllegalArgumentException("Could not read the image");
+        }
+        log.info("[PRESCRIPTION] image draft requested sizeBytes={}", bytes.length);
+
+        VoiceDraftResponse draft = openAi.extractDraftFromImage(bytes, contentType);
+        if (draft.getItems() == null) {
+            draft.setItems(new ArrayList<>());
+        }
+        if (draft.getItems().isEmpty() && (draft.getTranscript() == null || draft.getTranscript().isBlank())) {
+            throw new IllegalArgumentException("No prescription could be read from the image. Try a clearer photo.");
+        }
+        return draft;
+    }
+
     // ── Doctor-confirmed save ─────────────────────────────────────────────────
 
     @Transactional
@@ -97,7 +133,8 @@ public class PrescriptionService {
             }
         }
 
-        boolean voice = req.getSource() == PrescriptionSource.VOICE;
+        PrescriptionSource source = req.getSource() == null ? PrescriptionSource.MANUAL : req.getSource();
+        boolean aiDraft = source != PrescriptionSource.MANUAL;
         Prescription rx = new Prescription();
         rx.setPrescriptionNo(newPrescriptionNo());
         rx.setPatientId(String.valueOf(patient.getId()));
@@ -113,8 +150,8 @@ public class PrescriptionService {
         rx.setVisitDate(LocalDate.now());
         rx.setDiagnosis(req.getDiagnosis());
         rx.setNotes(req.getNotes());
-        rx.setSource(voice ? PrescriptionSource.VOICE : PrescriptionSource.MANUAL);
-        rx.setVoiceTranscript(voice ? req.getVoiceTranscript() : null);
+        rx.setSource(source);
+        rx.setVoiceTranscript(aiDraft ? req.getVoiceTranscript() : null);
 
         int order = 0;
         for (PrescriptionItemDto dto : req.getItems()) {

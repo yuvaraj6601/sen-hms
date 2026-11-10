@@ -7,7 +7,7 @@ export type RouteEnum =
 export type TimingEnum =
   | "BEFORE_FOOD" | "AFTER_FOOD" | "WITH_FOOD" | "EMPTY_STOMACH" | "AT_BEDTIME" | "AS_DIRECTED";
 
-export type PrescriptionSource = "VOICE" | "MANUAL";
+export type PrescriptionSource = "VOICE" | "HANDWRITTEN" | "MANUAL";
 
 export interface DraftItem {
   drugName: string;
@@ -129,7 +129,7 @@ export function buildSavePayload(draft: VoiceDraft, ctx: SaveContext, source: Pr
     diagnosis: opt(draft.diagnosis),
     notes: opt(draft.notes),
     source,
-    voiceTranscript: source === "VOICE" ? opt(draft.transcript) : undefined,
+    voiceTranscript: source !== "MANUAL" ? opt(draft.transcript) : undefined,
     items: draft.items
       .filter(i => !isBlankRow(i))
       .map(i => ({
@@ -141,5 +141,32 @@ export function buildSavePayload(draft: VoiceDraft, ctx: SaveContext, source: Pr
         duration: opt(i.duration),
         instructions: opt(i.instructions),
       })),
+  };
+}
+
+// ── API draft (voice-draft / image-draft) → editable draft ──────────────────
+
+export interface DraftApiItem {
+  drugName?: string; dosage?: string; frequency?: string;
+  route?: string; timing?: string | null; duration?: string | null; instructions?: string | null;
+}
+export interface DraftApiResponse {
+  transcript?: string; diagnosis?: string | null; notes?: string | null; items?: DraftApiItem[];
+}
+
+export function toDraft(api: DraftApiResponse): VoiceDraft {
+  return {
+    transcript: api.transcript ?? "",
+    diagnosis: api.diagnosis ?? "",
+    notes: api.notes ?? "",
+    items: (api.items ?? []).map((i): DraftItem => ({
+      drugName: i.drugName ?? "",
+      dosage: i.dosage ?? "",
+      frequency: i.frequency ?? "",
+      route: toRouteEnum(i.route ?? ""),
+      timing: toTimingEnum(i.timing ?? ""),
+      duration: i.duration ?? "",
+      instructions: i.instructions ?? "",
+    })),
   };
 }

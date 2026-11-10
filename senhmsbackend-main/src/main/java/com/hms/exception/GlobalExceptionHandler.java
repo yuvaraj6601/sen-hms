@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
             com.hms.modules.prescription.exception.OpenAiException ex) {
         log.error("OpenAI call failed: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(ApiResponse.error("Voice service is unavailable. Please try again or enter the prescription manually."));
+                .body(ApiResponse.error("AI prescription service is unavailable. Please try again or enter the prescription manually."));
     }
 
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)

@@ -3,8 +3,8 @@
   "project": "sen-hms",
   "lastReview": {
     "date": "2026-11-10",
-    "commit": "222cabe",
-    "trigger": "Alter reports: add analytics report types"
+    "commit": "f22b196",
+    "trigger": "Handwritten prescription upload \u2014 review skipped"
   },
   "flows": [
     {
@@ -120,6 +120,63 @@
         "commit": "222cabe",
         "trigger": "Alter reports: add analytics report types"
       }
+    },
+    {
+      "id": "handwritten-prescription-upload",
+      "name": "Handwritten prescription upload (AI draft \u2192 review \u2192 save)",
+      "status": "not-checked",
+      "files": [
+        "senhmsbackend-main/src/main/java/com/hms/exception/GlobalExceptionHandler.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/client/OpenAiClient.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/client/OpenAiProperties.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/client/OpenAiRestClient.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/controller/PrescriptionController.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/dto/PrescriptionRequest.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/entity/Prescription.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/enums/PrescriptionSource.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/prescription/service/PrescriptionService.java",
+        "senhmsbackend-main/src/main/resources/application.yml",
+        "senhmsfrontend-main/app/(dashboard)/patients/[patientId]/case-sheet/page.tsx",
+        "senhmsfrontend-main/app/_components/VoicePrescriptionModal.tsx",
+        "senhmsfrontend-main/app/_lib/voice-prescription.ts",
+        "senhmsfrontend-main/app/api/prescriptions/[[...segments]]/route.ts",
+        "senhmsfrontend-main/app/_components/UploadPrescriptionModal.tsx",
+        "senhmsfrontend-main/app/_components/PrescriptionDraftEditor.tsx"
+      ],
+      "dependsOn": [],
+      "steps": [
+        {
+          "layer": "screen",
+          "name": "Upload image, review/edit AI draft, confirm",
+          "status": "not-checked"
+        },
+        {
+          "layer": "api",
+          "name": "Next proxy /api/prescriptions/image-draft",
+          "status": "not-checked"
+        },
+        {
+          "layer": "route",
+          "name": "POST /prescriptions/image-draft, POST /prescriptions",
+          "status": "not-checked"
+        },
+        {
+          "layer": "service",
+          "name": "createImageDraft (OpenAI vision) + save HANDWRITTEN",
+          "status": "not-checked"
+        },
+        {
+          "layer": "database",
+          "name": "prescriptions / prescription_items",
+          "status": "not-checked"
+        }
+      ],
+      "findings": [],
+      "lastChecked": {
+        "date": "2026-11-10",
+        "commit": "f22b196",
+        "trigger": "Handwritten prescription upload \u2014 review skipped"
+      }
     }
   ],
   "reviews": [
@@ -128,6 +185,13 @@
       "commit": "222cabe",
       "trigger": "Alter reports: add analytics report types",
       "flowsChecked": 3,
+      "broken": 0
+    },
+    {
+      "date": "2026-11-10",
+      "commit": "f22b196",
+      "trigger": "Handwritten prescription upload \u2014 review skipped",
+      "flowsChecked": 0,
       "broken": 0
     }
   ]

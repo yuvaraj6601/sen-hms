@@ -3,6 +3,7 @@
  * Forwards to Spring Boot with the JWT from the httpOnly cookie.
  *
  *   POST /api/prescriptions/voice-draft   (multipart — recorded audio)
+ *   POST /api/prescriptions/image-draft   (multipart — handwritten prescription photo)
  *   POST /api/prescriptions               (doctor-confirmed save)
  *   GET  /api/prescriptions?admissionId=&visitId=&patientId=
  */

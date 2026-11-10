@@ -6,6 +6,7 @@ import { getSession, logout, isTabAuthenticated, clearTabAuth, type Session } fr
 import Sidebar from "../_components/Sidebar";
 import Header from "../_components/Header";
 import ChatBot from "../_components/chatbot/ChatBot";
+import Toaster from "../_components/Toaster";
 import { useIdleTimeout } from "../_hooks/useIdleTimeout";
 
 // Idle timeout: 15 minutes of inactivity triggers the lock overlay
@@ -145,6 +146,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+
+      <Toaster />
 
       {/* ── AI assistant (bottom-right) ─────────────────────────────────── */}
       <ChatBot role={session.role} />
