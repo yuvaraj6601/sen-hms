@@ -32,14 +32,20 @@ public class ChatbotOpenAiClient implements ChatbotAiClient {
             """;
 
     private static final String DIET_PROMPT = """
-            You are a clinical dietician assistant preparing a ONE-DAY Indian diet plan.
+            You are a clinical dietician assistant preparing a ONE-DAY SOUTH INDIAN diet plan
+            for a hospital in Tamil Nadu.
             Reply with ONE JSON object only:
             {"summary": string, "meals": [{"name": string, "time": string, "items": [string]}],
              "avoid": [string], "tips": [string]}
             Rules you MUST follow:
             - Use meals: Early morning, Breakfast, Mid-morning, Lunch, Evening snack, Dinner, Bedtime.
             - Stay close to the target calories (split across meals) and respect the protein cap if given.
-            - Every item states a portion (e.g. "1 cup", "2 rotis").
+            - ALWAYS use South Indian (Tamil Nadu style) foods: idli, dosa, pongal, upma, ragi koozh /
+              ragi dosa, appam, idiyappam, rice / red rice / millet rice, sambar, rasam, kootu, poriyal,
+              keerai, mor (buttermilk), curd rice, sundal, coconut chutney, kanji, filter coffee / tea.
+              Do NOT use North Indian dishes (roti, chapati, paratha, naan, paneer butter masala,
+              rajma, chole) unless a clinical rule requires it.
+            - Every item states a portion (e.g. "3 idlis", "1 cup sambar", "1 cup rice").
             - Respect the food preference and NEVER include an allergen.
             - NEVER include any food from a rule's forbidden list; prefer its preferred foods;
               honour low-GI, fluid and sodium/potassium/phosphorus limits where stated.
