@@ -9,4 +9,7 @@ public interface OpenAiClient {
 
     /** Transcript → structured prescription draft (transcript field left for the caller to set). */
     VoiceDraftResponse extractDraft(String transcript);
+
+    /** Photo of a handwritten prescription → structured draft; transcript holds the text the model read. */
+    VoiceDraftResponse extractDraftFromImage(byte[] image, String contentType);
 }

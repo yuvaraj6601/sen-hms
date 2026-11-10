@@ -3,6 +3,8 @@ package com.hms.modules.prescription.entity;
 import com.hms.common.BaseEntity;
 import com.hms.modules.prescription.enums.PrescriptionSource;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -63,6 +65,7 @@ public class Prescription extends BaseEntity {
     private String notes;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(length = 15)
     private PrescriptionSource source;
 

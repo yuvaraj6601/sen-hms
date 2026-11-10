@@ -33,7 +33,7 @@ public class PrescriptionRequest {
 
     private PrescriptionSource source = PrescriptionSource.MANUAL;
 
-    /** Only kept when {@code source == VOICE}. */
+    /** Only kept for AI drafts (VOICE / HANDWRITTEN): the transcript or the text read from the image. */
     private String voiceTranscript;
 
     @NotEmpty(message = "At least one medicine is required")

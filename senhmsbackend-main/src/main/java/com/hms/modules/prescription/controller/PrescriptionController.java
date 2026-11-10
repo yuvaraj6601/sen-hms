@@ -32,6 +32,16 @@ public class PrescriptionController {
         return ResponseEntity.ok(ApiResponse.ok(service.createVoiceDraft(audio)));
     }
 
+    /** Handwritten prescription photo in → AI draft out. Nothing is saved. POST /api/prescriptions/image-draft */
+    @PostMapping(value = "/image-draft", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<VoiceDraftResponse>> imageDraft(
+            @RequestParam(value = "image", required = false) MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new IllegalArgumentException("Prescription image is required");
+        }
+        return ResponseEntity.ok(ApiResponse.ok(service.createImageDraft(image)));
+    }
+
     /** Doctor-confirmed save. POST /api/prescriptions */
     @PostMapping
     public ResponseEntity<ApiResponse<PrescriptionResponse>> save(@Valid @RequestBody PrescriptionRequest req) {
