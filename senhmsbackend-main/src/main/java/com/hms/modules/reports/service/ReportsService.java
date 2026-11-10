@@ -358,13 +358,13 @@ public class ReportsService {
         };
     }
 
-    private BigDecimal dec(Object o) {
+    BigDecimal dec(Object o) {
         if (o == null) return BigDecimal.ZERO;
         if (o instanceof BigDecimal b) return b;
         return BigDecimal.valueOf(((Number) o).doubleValue());
     }
 
-    private String normaliseGroupBy(String g) {
+    String normaliseGroupBy(String g) {
         if (g == null) return "DAY";
         return switch (g.trim().toUpperCase()) {
             case "MONTH" -> "MONTH";
@@ -373,7 +373,7 @@ public class ReportsService {
         };
     }
 
-    private String bucketKey(LocalDate d, String gb) {
+    String bucketKey(LocalDate d, String gb) {
         return switch (gb) {
             case "MONTH" -> String.format("%04d-%02d", d.getYear(), d.getMonthValue());
             case "YEAR"  -> String.format("%04d", d.getYear());
@@ -381,7 +381,7 @@ public class ReportsService {
         };
     }
 
-    private LocalDate bucketStart(String key, String gb) {
+    LocalDate bucketStart(String key, String gb) {
         return switch (gb) {
             case "MONTH" -> {
                 String[] p = key.split("-");
@@ -392,7 +392,7 @@ public class ReportsService {
         };
     }
 
-    private String bucketLabel(LocalDate d, String gb) {
+    String bucketLabel(LocalDate d, String gb) {
         return switch (gb) {
             case "MONTH" -> MONTH_LABELS[d.getMonthValue()] + " " + d.getYear();
             case "YEAR"  -> String.valueOf(d.getYear());
@@ -400,7 +400,7 @@ public class ReportsService {
         };
     }
 
-    private long num(Object o) { return o == null ? 0L : ((Number) o).longValue(); }
+    long num(Object o) { return o == null ? 0L : ((Number) o).longValue(); }
 
     // ── helpers ─────────────────────────────────────────────────────────────
 

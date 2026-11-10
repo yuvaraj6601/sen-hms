@@ -249,6 +249,41 @@ export const PERMISSIONS: Record<string, Record<Role, Permission>> = {
     "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,
     "Lab/Ins/Reception": NONE,
   },
+  "reports/department-patients": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,
+    "Lab/Ins/Reception": NONE,
+  },
+  "reports/doctor-op": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,
+    "Lab/Ins/Reception": NONE,
+  },
+  "reports/discharge-trends": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,
+    "Lab/Ins/Reception": NONE,
+  },
+  "reports/bed-occupancy": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,
+    "Lab/Ins/Reception": NONE,
+  },
+  "reports/insurance-claims": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": NONE, "Insurance Coordinator": VIEW, Nurse: NONE,
+    "Lab/Ins/Reception": VIEW,
+  },
+  "reports/lab-status": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": VIEW, "Insurance Coordinator": NONE, Nurse: NONE,
+    "Lab/Ins/Reception": VIEW,
+  },
+  "reports/payment-analysis": {
+    "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: NONE,
+    "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,
+    "Lab/Ins/Reception": NONE,
+  },
   "reports/admission-form": {
     "Managing Director": FULL, Admin: FULL, Doctor: NONE, Receptionist: FULL,
     "Lab Tech": NONE, "Insurance Coordinator": NONE, Nurse: NONE,

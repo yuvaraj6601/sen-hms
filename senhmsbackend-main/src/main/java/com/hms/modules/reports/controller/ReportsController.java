@@ -1,9 +1,11 @@
 package com.hms.modules.reports.controller;
 
 import com.hms.common.ApiResponse;
+import com.hms.modules.reports.dto.AnalyticsReportResponse;
 import com.hms.modules.reports.dto.FinancialReportResponse;
 import com.hms.modules.reports.dto.PatientReportResponse;
 import com.hms.modules.reports.dto.StatisticsReportResponse;
+import com.hms.modules.reports.service.AnalyticsReportService;
 import com.hms.modules.reports.service.ReportsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,6 +21,7 @@ import java.util.List;
 public class ReportsController {
 
     private final ReportsService service;
+    private final AnalyticsReportService analytics;
 
     /**
      * Aggregated statistics report for a period.
@@ -98,5 +101,25 @@ public class ReportsController {
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(ApiResponse.ok(service.getIncomeCategories(from, to)));
+    }
+
+    /**
+     * Analytics reports (table + chart payload).
+     *
+     * GET /api/reports/analytics?type=DOCTOR_OP&from=2026-09-01&to=2026-09-30
+     * GET /api/reports/analytics?type=DISCHARGE&from=...&to=...&groupBy=MONTH
+     *
+     * @param type DEPARTMENT_PATIENTS | DOCTOR_OP | DISCHARGE | INSURANCE_CLAIMS
+     *             | BED_OCCUPANCY | LAB_STATUS | PAYMENT_ANALYSIS
+     */
+    @GetMapping("/analytics")
+    public ResponseEntity<ApiResponse<AnalyticsReportResponse>> getAnalytics(
+            @RequestParam String type,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false, defaultValue = "DAY") String groupBy) {
+        return ResponseEntity.ok(ApiResponse.ok(analytics.generate(type, from, to, groupBy)));
     }
 }

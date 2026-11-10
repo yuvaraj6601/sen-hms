@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "project": "sen-hms",
+  "lastReview": {
+    "date": "2026-11-10",
+    "commit": "222cabe",
+    "trigger": "Alter reports: add analytics report types"
+  },
+  "flows": [
+    {
+      "id": "analytics-reports",
+      "name": "Analytics reports (7 new types)",
+      "status": "risky",
+      "files": [
+        "senhmsfrontend-main/app/(dashboard)/reports/_components/AnalyticsReport.tsx",
+        "senhmsfrontend-main/app/(dashboard)/reports/department-patients/page.tsx",
+        "senhmsfrontend-main/app/api/reports/[[...segments]]/route.ts",
+        "senhmsbackend-main/src/main/java/com/hms/modules/reports/controller/ReportsController.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/reports/service/AnalyticsReportService.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/reports/dto/AnalyticsReportResponse.java"
+      ],
+      "dependsOn": [
+        "sidebar-reports-nav"
+      ],
+      "steps": [
+        {
+          "layer": "screen",
+          "name": "Pick range/group/view, Generate, export CSV/PDF/PNG",
+          "status": "clear"
+        },
+        {
+          "layer": "api",
+          "name": "Next proxy forwards /api/reports/analytics with JWT",
+          "status": "clear"
+        },
+        {
+          "layer": "route",
+          "name": "GET /reports/analytics?type=&from=&to=&groupBy=",
+          "status": "clear"
+        },
+        {
+          "layer": "service",
+          "name": "AnalyticsReportService: 7 JPQL aggregations -> generic payload",
+          "status": "risky"
+        },
+        {
+          "layer": "database",
+          "name": "op_visits, admissions, insurance_claims, beds/wards, lab_investigations, payment_records, expenses",
+          "status": "risky"
+        }
+      ],
+      "findings": [
+        {
+          "severity": "risky",
+          "file": "senhmsbackend-main/src/main/java/com/hms/modules/reports/service/AnalyticsReportService.java",
+          "line": 1,
+          "reason": "JPQL is built with EntityManager strings, so Hibernate validates it only when each report is first called (not at startup). Code compiles, but the 7 queries (COALESCE/NULLIF in GROUP BY, enum params on Bed/Ward) were not executed. Open each report once after deploy."
+        }
+      ],
+      "lastChecked": {
+        "date": "2026-11-10",
+        "commit": "222cabe",
+        "trigger": "Alter reports: add analytics report types"
+      }
+    },
+    {
+      "id": "patient-and-financial-reports",
+      "name": "Existing patient / income / expense / net-cash reports",
+      "status": "clear",
+      "files": [
+        "senhmsbackend-main/src/main/java/com/hms/modules/reports/service/ReportsService.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/reports/controller/ReportsController.java",
+        "senhmsfrontend-main/app/(dashboard)/reports/statistics/page.tsx",
+        "senhmsfrontend-main/app/(dashboard)/reports/_components/FinancialReport.tsx"
+      ],
+      "dependsOn": [],
+      "steps": [
+        {
+          "layer": "service",
+          "name": "ReportsService helpers widened private -> package-private only; logic unchanged",
+          "status": "clear"
+        },
+        {
+          "layer": "route",
+          "name": "Existing /statistics, /patient, /financial endpoints untouched",
+          "status": "clear"
+        }
+      ],
+      "findings": [],
+      "lastChecked": {
+        "date": "2026-11-10",
+        "commit": "222cabe",
+        "trigger": "Alter reports: add analytics report types"
+      }
+    },
+    {
+      "id": "sidebar-reports-nav",
+      "name": "Sidebar Reports menu + role permissions",
+      "status": "clear",
+      "files": [
+        "senhmsfrontend-main/app/_components/Sidebar.tsx",
+        "senhmsfrontend-main/app/_lib/auth.ts"
+      ],
+      "dependsOn": [],
+      "steps": [
+        {
+          "layer": "screen",
+          "name": "7 new entries under Reports, each with a permKey",
+          "status": "clear"
+        },
+        {
+          "layer": "screen",
+          "name": "auth.ts: matching reports/* keys; MD/Admin full, Insurance & Lab roles view their own report",
+          "status": "clear"
+        }
+      ],
+      "findings": [],
+      "lastChecked": {
+        "date": "2026-11-10",
+        "commit": "222cabe",
+        "trigger": "Alter reports: add analytics report types"
+      }
+    }
+  ],
+  "reviews": [
+    {
+      "date": "2026-11-10",
+      "commit": "222cabe",
+      "trigger": "Alter reports: add analytics report types",
+      "flowsChecked": 3,
+      "broken": 0
+    }
+  ]
+}

@@ -123,6 +123,13 @@ const SECTIONS: NavSection[] = [
       { kind: "leaf", href: "/reports/income",         label: "Income Report",   permKey: "reports/income" },
       { kind: "leaf", href: "/reports/expense-list",   label: "Expense Report",  permKey: "reports/expense-list" },
       { kind: "leaf", href: "/reports/net-cash",       label: "Net Cash Report", permKey: "reports/net-cash" },
+      { kind: "leaf", href: "/reports/department-patients", label: "Department-wise Patients", permKey: "reports/department-patients" },
+      { kind: "leaf", href: "/reports/doctor-op",           label: "Doctor-wise OP Visits",    permKey: "reports/doctor-op" },
+      { kind: "leaf", href: "/reports/discharge-trends",    label: "Discharge Trends",         permKey: "reports/discharge-trends" },
+      { kind: "leaf", href: "/reports/bed-occupancy",       label: "Bed Occupancy",            permKey: "reports/bed-occupancy" },
+      { kind: "leaf", href: "/reports/insurance-claims",    label: "Insurance Claims",         permKey: "reports/insurance-claims" },
+      { kind: "leaf", href: "/reports/lab-status",          label: "Lab Status",               permKey: "reports/lab-status" },
+      { kind: "leaf", href: "/reports/payment-analysis",    label: "Expenses & Payments",      permKey: "reports/payment-analysis" },
     ],
   },
   {
