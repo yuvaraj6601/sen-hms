@@ -144,6 +144,11 @@ export default function UsersPage() {
     );
   }
 
+  return <UsersManager sessionId={sessionId} />;
+}
+
+// Hooks live here so they are never called conditionally (role gate is above).
+function UsersManager({ sessionId }: { sessionId: string }) {
   const { data: raw, loading, error: fetchErr, reload } = useMaster<UserResponse>("/api/masters/users");
   const users = useMemo(() => raw.map(toFrontend), [raw]);
 

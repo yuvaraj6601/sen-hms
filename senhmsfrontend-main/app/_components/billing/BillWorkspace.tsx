@@ -2640,14 +2640,14 @@ export default function BillWorkspace({ scopePatientId, showCraft = true, letter
               text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"/>
         </div>
 
-        <DropFilter value={typeFilter} onChange={v => setTypeFilter(v as any)}
+        <DropFilter value={typeFilter} onChange={v => setTypeFilter(v as "OP" | "IP" | "")}
           label="Patient Type" options={[
             { value: "", label: "All Types" },
             { value: "OP", label: "OP" },
             { value: "IP", label: "IP" },
           ]}/>
 
-        <DropFilter value={insFilter} onChange={v => setInsFilter(v as any)}
+        <DropFilter value={insFilter} onChange={v => setInsFilter(v as "" | "yes" | "no")}
           label="Insurance" options={[
             { value: "",    label: "All" },
             { value: "yes", label: "Insurance" },

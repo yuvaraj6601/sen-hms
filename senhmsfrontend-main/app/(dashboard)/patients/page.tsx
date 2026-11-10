@@ -3019,7 +3019,7 @@ export default function PatientsPage() {
             <fieldset disabled={!!editPatient && editPatient.patientType !== "OP" && !!editPatient.postAdmitEdited} className="space-y-5 disabled:opacity-100 min-w-0 border-0 m-0 p-0">
               {editPatient && editPatient.patientType === "OP" && (
                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-xs text-emerald-700">
-                  You can correct this out-patient's details before admission. The <span className="font-semibold">mobile number</span> can only be changed by an Admin. Changes update the patient record and apply to future visits.
+                  You can correct this out-patient&apos;s details before admission. The <span className="font-semibold">mobile number</span> can only be changed by an Admin. Changes update the patient record and apply to future visits.
                 </div>
               )}
               {editPatient && editPatient.patientType !== "OP" && !editPatient.postAdmitEdited && (

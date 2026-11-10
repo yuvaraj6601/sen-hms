@@ -13,17 +13,62 @@ export const CHART_COLORS = [
 
 function fmtNum(n: number) { return (n ?? 0).toLocaleString("en-IN"); }
 
+
+// ── Scroll frame: natural-width chart, sticky Y axis + sticky bottom scrollbar ─
+function ScrollFrame({ width, height, padL, ticks, yOf, legend, children }: {
+  legend: { label: string; color?: string }[]; width: number; height: number; padL: number; ticks: number[]; yOf: (v: number) => number;
+  children: React.ReactNode;
+}) {
+  const main = React.useRef<HTMLDivElement>(null);
+  const bar = React.useRef<HTMLDivElement>(null);
+  const lock = React.useRef(false);
+  const sync = (from: HTMLDivElement | null, to: HTMLDivElement | null) => {
+    if (!from || !to) return;
+    if (lock.current) { lock.current = false; return; }
+    if (to.scrollLeft === from.scrollLeft) return;
+    lock.current = true; to.scrollLeft = from.scrollLeft;
+  };
+  return (
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", padding: "0 4px 8px" }}>
+        {legend.map((l, i) => (
+          <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#475569" }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: l.color ?? CHART_COLORS[i % CHART_COLORS.length] }} />
+            {l.label}
+          </span>
+        ))}
+      </div>
+      <div ref={main} onScroll={() => sync(main.current, bar.current)}
+        style={{ overflowX: "auto", scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", width }}>
+          {children}
+          <svg aria-hidden width={padL} height={height}
+            style={{ flex: "none", position: "sticky", left: 0, marginLeft: -width, background: "#fff", borderRight: "1px solid #e2e8f0" }}>
+            {ticks.map((tk, i) => (
+              <text key={i} x={padL - 6} y={yOf(tk) + 3} textAnchor="end" fontSize={10} fill="#64748b">{fmtNum(tk)}</text>
+            ))}
+          </svg>
+        </div>
+      </div>
+      <div ref={bar} onScroll={() => sync(bar.current, main.current)}
+        style={{ position: "sticky", bottom: 0, zIndex: 5, overflowX: "auto", background: "#fff" }}>
+        <div style={{ width, height: 1 }} />
+      </div>
+    </div>
+  );
+}
+
 // ── Bar chart (single or grouped series) ─────────────────────────────────────
 export interface BarSeries { label: string; color?: string; values: number[]; }
 
 export function BarChart({
-  labels, series, height = 280, valueFormatter = fmtNum, ariaLabel,
+  labels, series, height = 320, valueFormatter = fmtNum, ariaLabel,
 }: {
   labels: string[]; series: BarSeries[]; height?: number;
   valueFormatter?: (n: number) => string; ariaLabel?: string;
 }) {
-  const width = Math.max(labels.length * (series.length * 16 + 26) + 60, 340);
-  const padL = 48, padB = 48, padT = 12, padR = 12;
+  const width = Math.max(labels.length * (series.length * 18 + 30) + 60, 340);
+  const padL = 48, padB = 72, padT = 12, padR = 24;
   const chartW = width - padL - padR;
   const chartH = height - padT - padB;
   const maxV = Math.max(1, ...series.flatMap(s => s.values));
@@ -32,9 +77,11 @@ export function BarChart({
   const yTicks = 4;
   const ticks = Array.from({ length: yTicks + 1 }, (_, i) => Math.round((maxV / yTicks) * i));
 
+  const yOfB = (v: number) => padT + chartH - (v / maxV) * chartH;
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img"
-      aria-label={ariaLabel ?? "Bar chart"} style={{ maxWidth: "100%" }}>
+    <ScrollFrame legend={series} width={width} height={height} padL={padL} ticks={ticks} yOf={yOfB}>
+    <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img"
+      aria-label={ariaLabel ?? "Bar chart"} style={{ flex: "none" }}>
       <rect x={0} y={0} width={width} height={height} fill="#ffffff" />
       {ticks.map((tk, i) => {
         const y = padT + chartH - (tk / maxV) * chartH;
@@ -61,12 +108,15 @@ export function BarChart({
                 </rect>
               );
             })}
-            <text x={gx + groupW / 2} y={height - padB + 14} textAnchor="middle" fontSize={9}
-              fill="#64748b">{lab.length > 10 ? lab.slice(0, 9) + "…" : lab}</text>
+            <text x={gx + groupW / 2} y={height - padB + 14} textAnchor="end" fontSize={10} fill="#64748b"
+              transform={`rotate(-40 ${gx + groupW / 2} ${height - padB + 14})`}>
+              {lab.length > 14 ? lab.slice(0, 13) + "…" : lab}<title>{lab}</title>
+            </text>
           </g>
         );
       })}
     </svg>
+    </ScrollFrame>
   );
 }
 
@@ -74,13 +124,13 @@ export function BarChart({
 export interface LineSeries { label: string; color?: string; values: number[]; }
 
 export function LineChart({
-  labels, series, height = 280, valueFormatter = fmtNum, ariaLabel,
+  labels, series, height = 320, valueFormatter = fmtNum, ariaLabel,
 }: {
   labels: string[]; series: LineSeries[]; height?: number;
   valueFormatter?: (n: number) => string; ariaLabel?: string;
 }) {
-  const width = Math.max(labels.length * 60 + 60, 340);
-  const padL = 48, padB = 48, padT = 12, padR = 12;
+  const width = Math.max(labels.length * 64 + 60, 340);
+  const padL = 48, padB = 72, padT = 12, padR = 24;
   const chartW = width - padL - padR;
   const chartH = height - padT - padB;
   const allVals = series.flatMap(s => s.values);
@@ -91,8 +141,9 @@ export function LineChart({
   const yOf = (v: number) => padT + chartH - (v / maxV) * chartH;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img"
-      aria-label={ariaLabel ?? "Line chart"} style={{ maxWidth: "100%" }}>
+    <ScrollFrame legend={series} width={width} height={height} padL={padL} ticks={ticks} yOf={yOf}>
+    <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img"
+      aria-label={ariaLabel ?? "Line chart"} style={{ flex: "none" }}>
       <rect x={0} y={0} width={width} height={height} fill="#ffffff" />
       {ticks.map((tk, i) => {
         const y = yOf(tk);
@@ -119,10 +170,13 @@ export function LineChart({
         );
       })}
       {labels.map((lab, i) => (
-        <text key={i} x={padL + i * stepX} y={height - padB + 14} textAnchor="middle" fontSize={9}
-          fill="#64748b">{lab.length > 8 ? lab.slice(0, 7) + "…" : lab}</text>
+        <text key={i} x={padL + i * stepX} y={height - padB + 14} textAnchor="end" fontSize={10} fill="#64748b"
+          transform={`rotate(-40 ${padL + i * stepX} ${height - padB + 14})`}>
+          {lab.length > 14 ? lab.slice(0, 13) + "…" : lab}<title>{lab}</title>
+        </text>
       ))}
     </svg>
+    </ScrollFrame>
   );
 }
 

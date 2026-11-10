@@ -1311,7 +1311,7 @@ export default function InsurancePage() {
                   <div className="flex items-center gap-3 flex-wrap">
                     <Badge label={STATUS_DISPLAY[viewClaim.status] ?? viewClaim.status} variant={STATUS_COLORS[viewClaim.status] ?? "gray"} dot/>
                     {viewClaim.remarks && (
-                      <p className="text-xs text-slate-500 italic">"{viewClaim.remarks}"</p>
+                      <p className="text-xs text-slate-500 italic">&ldquo;{viewClaim.remarks}&rdquo;</p>
                     )}
                   </div>
 

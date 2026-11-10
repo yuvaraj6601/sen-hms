@@ -29,6 +29,7 @@ export function useMaster<T>(
   options: UseMasterOptions = {}
 ) {
   const { size = 200, params } = options;
+  const paramsKey = JSON.stringify(params ?? {});
 
   const [data,    setData]    = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,7 @@ export function useMaster<T>(
     setLoading(true);
     setError(null);
     try {
-      const qs = new URLSearchParams({ page: "0", size: String(size), ...params }).toString();
+      const qs = new URLSearchParams({ page: "0", size: String(size), ...(JSON.parse(paramsKey) as Record<string, string>) }).toString();
       const res = await fetch(`${path}?${qs}`);
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -61,7 +62,7 @@ export function useMaster<T>(
     } finally {
       setLoading(false);
     }
-  }, [path, size, JSON.stringify(params)]);
+  }, [path, size, paramsKey]);
 
   useEffect(() => { load(); }, [load]);
 

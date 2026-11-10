@@ -162,7 +162,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-1">Still there?</h3>
             <p className="text-sm text-slate-500 mb-2">
-              You've been inactive. You'll be logged out in
+              You&apos;ve been inactive. You&apos;ll be logged out in
             </p>
             <p className="text-4xl font-bold text-amber-500 mb-5 tabular-nums">
               {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}

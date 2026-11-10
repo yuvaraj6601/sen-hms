@@ -428,7 +428,7 @@ export default function AppointmentsPage() {
       setError(err);
     }
     setLoading(false);
-  }, [dateFilter, isDoctor, sessionDoctorId]);
+  }, [dateFilter, isDoctor, sessionDoctorId, setLoading, setError, setAppts]);
 
   // ── Load masters ───────────────────────────────────────────────────────────
 

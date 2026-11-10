@@ -183,7 +183,8 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
     );
   }
 
-  let offset = 0;
+  const offsets = segments.map((_, i) =>
+    segments.slice(0, i).reduce((sum, sg) => sum + (sg.value / total) * circ, 0));
   return (
     <div className="flex items-center gap-4 mt-2">
       <div className="relative flex-shrink-0">
@@ -193,7 +194,7 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
             const animDash = fullDash * progress;
             const gap = circ - animDash;
             const isHov = hovered === i;
-            const animOffset = -offset * progress;
+            const animOffset = -offsets[i] * progress;
             const el = (
               <circle key={i} cx={CX} cy={CY} r={isHov ? R + 3 : R}
                 fill="none" stroke={seg.color} strokeWidth={isHov ? stroke + 4 : stroke}
@@ -201,7 +202,6 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
                 strokeLinecap="butt" style={{ transition: "r 0.15s, stroke-width 0.15s", cursor: "pointer" }}
                 onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)} />
             );
-            offset += fullDash;
             return el;
           })}
           <circle cx={CX} cy={CY} r={R - stroke / 2 - 3} fill="white" />
@@ -540,7 +540,7 @@ function AdminDashboard({ summary, wards, appointments, monthlyRev, role }: {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Today's Appointments</p>
+              <p className="text-sm font-semibold text-slate-900">Today&apos;s Appointments</p>
               <p className="text-xs text-slate-400 mt-0.5">{appointments.length} scheduled for today</p>
             </div>
             <Link href="/appointments/list" className="text-xs text-sky-500 hover:text-sky-600 font-semibold flex items-center gap-1">
@@ -801,7 +801,7 @@ function DoctorDashboard({ summary, appointments }: { summary: DashboardSummaryR
       ]} />
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-900">Today's Schedule</p>
+          <p className="text-sm font-semibold text-slate-900">Today&apos;s Schedule</p>
           <Link href="/appointments/list" className="text-xs text-sky-500 font-semibold">View all</Link>
         </div>
         <div className="overflow-x-auto">
@@ -853,7 +853,7 @@ function ReceptionistDashboard({ summary, appointments }: { summary: DashboardSu
       ]} />
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-900">Today's Appointments</p>
+          <p className="text-sm font-semibold text-slate-900">Today&apos;s Appointments</p>
           <Link href="/appointments/list" className="text-xs text-sky-500 font-semibold">View all</Link>
         </div>
         <div className="overflow-x-auto">
@@ -1008,7 +1008,7 @@ function LabInsReceptionDashboard({ summary, appointments }: {
       {/* ══ Today's Appointments ══ */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-900">Today's Appointments</p>
+          <p className="text-sm font-semibold text-slate-900">Today&apos;s Appointments</p>
           <Link href="/appointments/list" className="text-xs text-sky-500 font-semibold">View all</Link>
         </div>
         <div className="overflow-x-auto">

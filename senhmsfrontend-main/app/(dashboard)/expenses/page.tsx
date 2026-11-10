@@ -156,7 +156,7 @@ export default function ExpensesPage() {
     const raw: ExpenseResponse[] = data?.content ?? data ?? [];
     setExpenses(raw.map(toFrontend));
     setLoading(false);
-  }, [search, catFilter, statusFilter, dateFrom, dateTo]);
+  }, [search, catFilter, statusFilter, dateFrom, dateTo, setLoading, setFetchErr, setExpenses]);
 
   // ── Load expense categories from masters ──
   useEffect(() => {
