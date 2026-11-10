@@ -3,8 +3,8 @@
   "project": "sen-hms",
   "lastReview": {
     "date": "2026-11-10",
-    "commit": "f22b196",
-    "trigger": "Handwritten prescription upload \u2014 review skipped"
+    "commit": "e435569",
+    "trigger": "Fix: South Indian, editable AI diet chart"
   },
   "flows": [
     {
@@ -177,6 +177,34 @@
         "commit": "f22b196",
         "trigger": "Handwritten prescription upload \u2014 review skipped"
       }
+    },
+    {
+      "id": "ai-diet-plan",
+      "name": "AI assistant diet plan (generate, edit, download)",
+      "status": "clear",
+      "files": [
+        "senhmsbackend-main/src/main/java/com/hms/modules/chatbot/client/ChatbotOpenAiClient.java",
+        "senhmsfrontend-main/app/_components/chatbot/DietPlanCard.tsx"
+      ],
+      "dependsOn": [],
+      "steps": [
+        {
+          "layer": "screen",
+          "name": "DietPlanCard view / Edit / Save & Download / Download",
+          "status": "clear"
+        },
+        {
+          "layer": "service",
+          "name": "ChatbotOpenAiClient.generateDietPlan South Indian prompt",
+          "status": "clear"
+        }
+      ],
+      "findings": [],
+      "lastChecked": {
+        "date": "2026-11-10",
+        "commit": "e435569",
+        "trigger": "Fix: South Indian, editable AI diet chart"
+      }
     }
   ],
   "reviews": [
@@ -192,6 +220,13 @@
       "commit": "f22b196",
       "trigger": "Handwritten prescription upload \u2014 review skipped",
       "flowsChecked": 0,
+      "broken": 0
+    },
+    {
+      "date": "2026-11-10",
+      "commit": "e435569",
+      "trigger": "Fix: South Indian, editable AI diet chart",
+      "flowsChecked": 1,
       "broken": 0
     }
   ]
