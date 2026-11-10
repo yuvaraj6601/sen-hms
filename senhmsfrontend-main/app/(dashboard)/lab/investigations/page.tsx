@@ -220,8 +220,20 @@ function ParamResultGrid({
 }) {
   // Build an ordered render plan: group header, then sub-group header (if any),
   // then each parameter row — preserving the template's order.
-  let lastGroup: string | null = null;
-  let lastSub: string | null = null;
+  const headers: { group: boolean; sub: boolean }[] = [];
+  {
+    let lastGroup: string | null = null;
+    let lastSub: string | null = null;
+    for (const row of template) {
+      const g = (row.group || "").trim();
+      const s = (row.subGroup || "").trim();
+      const group = !!g && g !== lastGroup;
+      if (group) { lastGroup = g; lastSub = null; }
+      const sub = !!s && s !== lastSub;
+      if (sub) lastSub = s; else if (!s) lastSub = null;
+      headers.push({ group, sub });
+    }
+  }
 
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden">
@@ -234,21 +246,17 @@ function ParamResultGrid({
           const blocks: React.ReactNode[] = [];
           const g = (row.group || "").trim();
           const s = (row.subGroup || "").trim();
-          if (g && g !== lastGroup) {
-            lastGroup = g; lastSub = null;
+          if (headers[i].group) {
             blocks.push(
               <div key={`g-${i}`} className="bg-slate-50 px-3 py-1.5 text-xs font-bold
                 text-slate-600 uppercase tracking-wide">{g}</div>
             );
           }
-          if (s && s !== lastSub) {
-            lastSub = s;
+          if (headers[i].sub) {
             blocks.push(
               <div key={`s-${i}`} className="bg-white px-3 py-1 pl-5 text-xs font-semibold
                 text-slate-500 uppercase">{s}</div>
             );
-          } else if (!s) {
-            lastSub = null;
           }
           const val = values[i] ?? "";
           const abn = paramAbnormal(val, row);
@@ -535,8 +543,8 @@ export default function LabInvestigationsPage() {
       // backend may return paged or array
       const list: LabInvestigationResponse[] = Array.isArray(data) ? data : (data?.content ?? []);
       setTests(list);
-    } catch (e: any) {
-      setError(e.message ?? "Failed to load investigations");
+    } catch (e: unknown) {
+      setError((e instanceof Error && e.message) || "Failed to load investigations");
     } finally {
       setLoading(false);
     }

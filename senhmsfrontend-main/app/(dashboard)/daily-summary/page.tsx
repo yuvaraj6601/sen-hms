@@ -662,7 +662,7 @@ export default function DailySummaryPage() {
 
             {entries.length === 0 ? (
               <div className="border-2 border-dashed border-slate-200 rounded-xl py-8 text-center text-slate-400 text-sm">
-                No entries yet — click "Add Row" to start.
+                No entries yet — click &quot;Add Row&quot; to start.
               </div>
             ) : (
               <div className="border border-slate-200 rounded-xl overflow-hidden">

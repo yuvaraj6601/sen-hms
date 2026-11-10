@@ -13,7 +13,7 @@ const ACTIVITY_EVENTS = [
 export function useIdleTimeout(onIdle: () => void, timeoutMs: number) {
   const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onIdleRef   = useRef(onIdle);
-  onIdleRef.current = onIdle;
+  useEffect(() => { onIdleRef.current = onIdle; }, [onIdle]);
 
   const reset = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);

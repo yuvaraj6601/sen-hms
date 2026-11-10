@@ -596,7 +596,7 @@ export default function DayReportPage() {
           </div>
 
           <p className="text-xs text-slate-400 text-center pt-1">
-            Click "Print / Save PDF" to generate the formal A4 report with hospital letterhead.
+            Click &quot;Print / Save PDF&quot; to generate the formal A4 report with hospital letterhead.
           </p>
         </div>
       )}

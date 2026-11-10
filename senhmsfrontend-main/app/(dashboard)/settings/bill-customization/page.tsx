@@ -145,8 +145,9 @@ function DragList<T extends { id: string; label?: string; enabled?: boolean }>({
   // Use refs so drag handlers always see the latest values (no stale closures)
   const dragIdx  = useRef<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
+  const [fromIdx, setFromIdx] = useState<number | null>(null);
 
-  function handleDragStart(idx: number) { dragIdx.current = idx; }
+  function handleDragStart(idx: number) { dragIdx.current = idx; setFromIdx(idx); }
 
   function handleDragOver(e: React.DragEvent, idx: number) {
     e.preventDefault();
@@ -155,22 +156,23 @@ function DragList<T extends { id: string; label?: string; enabled?: boolean }>({
 
   function handleDrop(toIdx: number) {
     const from = dragIdx.current;
-    if (from === null || from === toIdx) { dragIdx.current = null; setOverIdx(null); return; }
+    if (from === null || from === toIdx) { dragIdx.current = null; setFromIdx(null); setOverIdx(null); return; }
     const next = [...items];
     const [moved] = next.splice(from, 1);
     next.splice(toIdx, 0, moved);
     onReorder(next);
     dragIdx.current = null;
+    setFromIdx(null);
     setOverIdx(null);
   }
 
-  function handleDragEnd() { dragIdx.current = null; setOverIdx(null); }
+  function handleDragEnd() { dragIdx.current = null; setFromIdx(null); setOverIdx(null); }
 
   return (
     <div className="space-y-1.5">
       {items.map((item, idx) => {
         const label = labelFn ? labelFn(item) : (item.label ?? item.id);
-        const isFrom = dragIdx.current === idx;
+        const isFrom = fromIdx === idx;
         const isOver = overIdx === idx && !isFrom;
         return (
           <div

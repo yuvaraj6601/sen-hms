@@ -244,7 +244,7 @@ export default function TATReportPage() {
 
         {/* sort */}
         <div className="relative">
-          <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
+          <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
             className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-slate-200
               bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer">
             <option value="compliance">Sort: Worst Compliance First</option>
