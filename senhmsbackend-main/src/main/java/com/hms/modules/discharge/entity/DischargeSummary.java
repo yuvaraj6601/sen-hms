@@ -153,4 +153,16 @@ public class DischargeSummary extends BaseEntity {
 
     @Column(name = "consultant_designation", length = 200)
     private String consultantDesignation; // e.g. "MBBS, MS, MCh"
+
+    // ── Structured summary (AI upload) ────────────────────────────────────────
+
+    @Column(name = "icu_consultant", length = 150)
+    private String icuConsultant;
+
+    @Column(name = "drug_allergy", length = 255)
+    private String drugAllergy;
+
+    /** Full nested discharge-summary JSON (hospital template) — source of truth when present */
+    @Column(name = "structured_json", columnDefinition = "LONGTEXT")
+    private String structuredJson;
 }

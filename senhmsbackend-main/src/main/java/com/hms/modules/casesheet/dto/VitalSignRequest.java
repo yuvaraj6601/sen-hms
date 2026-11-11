@@ -1,6 +1,7 @@
 package com.hms.modules.casesheet.dto;
 
 import jakarta.validation.constraints.*;
+import com.hms.modules.casesheet.enums.RecordSource;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -52,4 +53,16 @@ public class VitalSignRequest {
     private Double bloodGlucose;
 
     private String notes;
+
+    @Size(max = 100)
+    private String drainage;
+    @Size(max = 100)
+    private String aspiration;
+    @Size(max = 255)
+    private String intake;
+    @Size(max = 255)
+    private String output;
+    @Size(max = 255)
+    private String remarks;
+    private RecordSource source;
 }
