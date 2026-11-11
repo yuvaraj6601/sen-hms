@@ -10,6 +10,8 @@
  *   PATCH  /api/case-sheet/medications/{id}/stop
  *   GET    /api/case-sheet/vitals?patientId=&admissionId=&visitId=
  *   POST   /api/case-sheet/vitals
+ *   POST   /api/case-sheet/report-draft?admissionId=   (multipart "file" — AI case sheet read)
+ *   POST   /api/case-sheet/report-import?admissionId=  (save reviewed draft)
  *   POST   /api/case-sheet/documents/upload     (multipart — case document upload)
  *   GET    /api/case-sheet/documents/admission/{id}
  *   GET    /api/case-sheet/documents/visit/{id}

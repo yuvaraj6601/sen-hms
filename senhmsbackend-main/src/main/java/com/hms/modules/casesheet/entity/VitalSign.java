@@ -1,6 +1,7 @@
 package com.hms.modules.casesheet.entity;
 
 import com.hms.common.BaseEntity;
+import com.hms.modules.casesheet.enums.RecordSource;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -61,4 +62,28 @@ public class VitalSign extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    // ── Vitals / I-O chart columns ────────────────────────────────────────────
+
+    @Column(length = 100)
+    private String drainage;
+
+    @Column(length = 100)
+    private String aspiration;
+
+    /** Intake entry, e.g. "H2O 100 ml", "NS 500 ml" */
+    @Column(length = 255)
+    private String intake;
+
+    /** Output entry, e.g. "Urine passed 200 ml" */
+    @Column(length = 255)
+    private String output;
+
+    @Column(length = 255)
+    private String remarks;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    @Builder.Default
+    private RecordSource source = RecordSource.MANUAL;
 }

@@ -2,10 +2,14 @@ package com.hms.modules.casesheet.controller;
 
 import com.hms.common.ApiResponse;
 import com.hms.modules.casesheet.dto.*;
+import com.hms.modules.casesheet.service.CaseSheetReportService;
 import com.hms.modules.casesheet.service.CaseSheetService;
+import com.hms.modules.casesheet.service.DictationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +21,8 @@ import java.util.List;
 public class CaseSheetController {
 
     private final CaseSheetService service;
+    private final CaseSheetReportService reportService;
+    private final DictationService dictationService;
 
     // ════════════════════════════════════════════════════════
     // OBSERVATIONS
@@ -55,6 +61,16 @@ public class CaseSheetController {
             @Valid @RequestBody ObservationRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(service.addObservation(req)));
+    }
+
+    /**
+     * Edit a saved observation.
+     * PUT /api/case-sheet/observations/{id}
+     */
+    @PutMapping("/observations/{id}")
+    public ResponseEntity<ApiResponse<ObservationResponse>> updateObservation(
+            @PathVariable Long id, @Valid @RequestBody ObservationRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok("Observation updated", service.updateObservation(id, req)));
     }
 
     // ════════════════════════════════════════════════════════
@@ -147,5 +163,53 @@ public class CaseSheetController {
             @Valid @RequestBody VitalSignRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(service.recordVitals(req)));
+    }
+
+    /**
+     * Edit a saved vitals entry.
+     * PUT /api/case-sheet/vitals/{id}
+     */
+    @PutMapping("/vitals/{id}")
+    public ResponseEntity<ApiResponse<VitalSignResponse>> updateVitals(
+            @PathVariable Long id, @Valid @RequestBody VitalSignRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok("Vitals updated", service.updateVitals(id, req)));
+    }
+
+    // ════════════════════════════════════════════════════════
+    // UPLOAD REPORT (AI)
+    // ════════════════════════════════════════════════════════
+
+    /**
+     * AI reads a scanned case sheet (PDF / image) into draft observations, vitals and
+     * discharge summary. Nothing is saved; the file is not stored.
+     * POST /api/case-sheet/report-draft?admissionId=5  (multipart "file")
+     */
+    @PostMapping(value = "/report-draft", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<CaseSheetDraftResponse>> reportDraft(
+            @RequestParam Long admissionId,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.ok(reportService.draft(admissionId, file)));
+    }
+
+    /**
+     * Save the reviewed draft against the admission.
+     * POST /api/case-sheet/report-import?admissionId=5
+     */
+    @PostMapping("/report-import")
+    public ResponseEntity<ApiResponse<CaseSheetImportResponse>> reportImport(
+            @RequestParam Long admissionId,
+            @RequestBody CaseSheetImportRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(reportService.importDraft(admissionId, req)));
+    }
+
+    /**
+     * Hold-to-talk dictation for a single field — returns the spoken text only.
+     * POST /api/case-sheet/transcribe  (multipart "audio")
+     */
+    @PostMapping(value = "/transcribe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> transcribe(
+            @RequestParam("audio") MultipartFile audio) {
+        return ResponseEntity.ok(ApiResponse.ok(java.util.Map.of("text", dictationService.transcribe(audio))));
     }
 }

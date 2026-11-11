@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "project": "sen-hms",
   "lastReview": {
-    "date": "2026-11-10",
-    "commit": "e435569",
-    "trigger": "Fix: South Indian, editable AI diet chart"
+    "commit": "8234c5d",
+    "date": "2026-11-11",
+    "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)"
   },
   "flows": [
     {
@@ -123,7 +123,7 @@
     },
     {
       "id": "handwritten-prescription-upload",
-      "name": "Handwritten prescription upload (AI draft \u2192 review \u2192 save)",
+      "name": "Handwritten prescription upload (AI draft → review → save)",
       "status": "not-checked",
       "files": [
         "senhmsbackend-main/src/main/java/com/hms/exception/GlobalExceptionHandler.java",
@@ -173,9 +173,9 @@
       ],
       "findings": [],
       "lastChecked": {
-        "date": "2026-11-10",
-        "commit": "f22b196",
-        "trigger": "Handwritten prescription upload \u2014 review skipped"
+        "commit": "8234c5d",
+        "date": "2026-11-11",
+        "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)"
       }
     },
     {
@@ -205,6 +205,59 @@
         "commit": "e435569",
         "trigger": "Fix: South Indian, editable AI diet chart"
       }
+    },
+    {
+      "id": "ai-case-sheet-upload",
+      "name": "IP case sheet upload → AI observations, vitals, discharge summary",
+      "status": "clear",
+      "dependsOn": [],
+      "lastChecked": {
+        "commit": "8234c5d",
+        "date": "2026-11-11",
+        "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)"
+      },
+      "findings": [
+        {
+          "severity": "fixed",
+          "summary": "report-import fell under /case-sheet/** (NU allowed) but writes the discharge summary (doctors only) — restricted both endpoints to MD/AD/DR"
+        }
+      ],
+      "files": [
+        "senhmsfrontend-main/app/_components/UploadCaseSheetModal.tsx",
+        "senhmsfrontend-main/app/(dashboard)/patients/[patientId]/case-sheet/page.tsx",
+        "senhmsfrontend-main/app/api/case-sheet/[[...segments]]/route.ts",
+        "senhmsbackend-main/src/main/java/com/hms/modules/casesheet/controller/CaseSheetController.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/casesheet/service/CaseSheetReportService.java",
+        "senhmsbackend-main/src/main/java/com/hms/modules/casesheet/client/CaseSheetOpenAiClient.java",
+        "senhmsbackend-main/src/main/java/com/hms/config/SecurityConfig.java"
+      ],
+      "steps": [
+        {
+          "layer": "screen",
+          "name": "Observations tab → Upload Report → read → review tabs → Confirm & Save",
+          "status": "clear"
+        },
+        {
+          "layer": "route",
+          "name": "POST /case-sheet/report-draft, /case-sheet/report-import (MD/AD/DR)",
+          "status": "clear"
+        },
+        {
+          "layer": "service",
+          "name": "CaseSheetReportService draft validation + transactional import",
+          "status": "clear"
+        },
+        {
+          "layer": "client",
+          "name": "CaseSheetOpenAiClient gpt-4o PDF/image read, template-filled discharge JSON",
+          "status": "clear"
+        },
+        {
+          "layer": "db",
+          "name": "observations/vital_signs new columns, discharge_summary.structured_json",
+          "status": "clear"
+        }
+      ]
     }
   ],
   "reviews": [
@@ -218,7 +271,7 @@
     {
       "date": "2026-11-10",
       "commit": "f22b196",
-      "trigger": "Handwritten prescription upload \u2014 review skipped",
+      "trigger": "Handwritten prescription upload — review skipped",
       "flowsChecked": 0,
       "broken": 0
     },
@@ -228,6 +281,14 @@
       "trigger": "Fix: South Indian, editable AI diet chart",
       "flowsChecked": 1,
       "broken": 0
+    },
+    {
+      "commit": "8234c5d",
+      "date": "2026-11-11",
+      "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)",
+      "flowsChecked": 2,
+      "broken": 0,
+      "notes": "Old manual Add Observation / Record Vitals / Discharge Summary save: new fields optional, source defaults MANUAL, structuredJson only overwritten when sent — not saved as flows."
     }
   ]
 }

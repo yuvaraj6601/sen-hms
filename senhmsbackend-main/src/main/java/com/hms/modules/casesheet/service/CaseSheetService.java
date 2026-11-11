@@ -9,6 +9,7 @@ import com.hms.modules.casesheet.entity.Observation;
 import com.hms.modules.casesheet.entity.VitalSign;
 import com.hms.modules.casesheet.enums.MedicationStatus;
 import com.hms.modules.casesheet.enums.ObservationType;
+import com.hms.modules.casesheet.enums.RecordSource;
 import com.hms.modules.casesheet.repository.MedicationRepository;
 import com.hms.modules.casesheet.repository.ObservationRepository;
 import com.hms.modules.casesheet.repository.VitalSignRepository;
@@ -75,10 +76,37 @@ public class CaseSheetService {
                 .diagnosis(req.getDiagnosis())
                 .plan(req.getPlan())
                 .notes(req.getNotes())
+                .generalExamination(req.getGeneralExamination())
+                .systemicExamination(req.getSystemicExamination())
+                .advice(req.getAdvice())
+                .source(req.getSource() != null ? req.getSource() : RecordSource.MANUAL)
                 .build();
         ObservationResponse obsSaved = toObsResponse(obsRepo.save(obs));
         auditLogService.log("Observation", obsSaved.getId(), "CREATE", currentUser(), "patientId=" + obsSaved.getPatientId() + " type=" + obsSaved.getType());
         return obsSaved;
+    }
+
+    /** Edit a saved observation — every clinical field is replaced; patient / admission links are kept. */
+    public ObservationResponse updateObservation(Long id, ObservationRequest req) {
+        Observation obs = obsRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Observation", id));
+        log.info("[CASESHEET] updateObservation id={}", id);
+        guardNotDischarged(obs.getAdmissionId(), "edit an observation of");
+        obs.setDate(req.getDate());
+        obs.setTime(req.getTime());
+        obs.setDoctorName(req.getDoctorName());
+        if (req.getType() != null) obs.setType(req.getType());
+        obs.setChiefComplaint(req.getChiefComplaint());
+        obs.setClinicalFindings(req.getClinicalFindings());
+        obs.setDiagnosis(req.getDiagnosis());
+        obs.setPlan(req.getPlan());
+        obs.setNotes(req.getNotes());
+        obs.setGeneralExamination(req.getGeneralExamination());
+        obs.setSystemicExamination(req.getSystemicExamination());
+        obs.setAdvice(req.getAdvice());
+        ObservationResponse saved = toObsResponse(obsRepo.save(obs));
+        auditLogService.log("Observation", saved.getId(), "UPDATE", currentUser(), "patientId=" + saved.getPatientId());
+        return saved;
     }
 
     // ════════════════════════════════════════════════════════
@@ -183,10 +211,43 @@ public class CaseSheetService {
                 .height(req.getHeight())
                 .bloodGlucose(req.getBloodGlucose())
                 .notes(req.getNotes())
+                .drainage(req.getDrainage())
+                .aspiration(req.getAspiration())
+                .intake(req.getIntake())
+                .output(req.getOutput())
+                .remarks(req.getRemarks())
+                .source(req.getSource() != null ? req.getSource() : RecordSource.MANUAL)
                 .build();
         VitalSignResponse vitalSaved = toVitalResponse(vitalRepo.save(vital));
         auditLogService.log("VitalSign", vitalSaved.getId(), "RECORD", currentUser(), "patientId=" + vitalSaved.getPatientId());
         return vitalSaved;
+    }
+
+    /** Edit a saved vitals row — every reading is replaced; patient / admission links are kept. */
+    public VitalSignResponse updateVitals(Long id, VitalSignRequest req) {
+        VitalSign v = vitalRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("VitalSign", id));
+        log.info("[CASESHEET] updateVitals id={}", id);
+        guardNotDischarged(v.getAdmissionId(), "edit vitals of");
+        v.setRecordedAt(req.getRecordedAt());
+        v.setRecordedBy(req.getRecordedBy());
+        v.setBloodPressure(req.getBloodPressure());
+        v.setPulse(req.getPulse());
+        v.setTemperature(req.getTemperature());
+        v.setSpo2(req.getSpo2());
+        v.setRespiratoryRate(req.getRespiratoryRate());
+        v.setWeight(req.getWeight());
+        v.setHeight(req.getHeight());
+        v.setBloodGlucose(req.getBloodGlucose());
+        v.setNotes(req.getNotes());
+        v.setDrainage(req.getDrainage());
+        v.setAspiration(req.getAspiration());
+        v.setIntake(req.getIntake());
+        v.setOutput(req.getOutput());
+        v.setRemarks(req.getRemarks());
+        VitalSignResponse saved = toVitalResponse(vitalRepo.save(v));
+        auditLogService.log("VitalSign", saved.getId(), "UPDATE", currentUser(), "patientId=" + saved.getPatientId());
+        return saved;
     }
 
     // ── Mappers ───────────────────────────────────────────────────────────────
@@ -208,6 +269,10 @@ public class CaseSheetService {
         r.setDiagnosis(o.getDiagnosis());
         r.setPlan(o.getPlan());
         r.setNotes(o.getNotes());
+        r.setGeneralExamination(o.getGeneralExamination());
+        r.setSystemicExamination(o.getSystemicExamination());
+        r.setAdvice(o.getAdvice());
+        r.setSource(o.getSource());
         r.setCreatedBy(o.getCreatedBy());
         r.setCreatedAt(o.getCreatedAt());
         r.setUpdatedAt(o.getUpdatedAt());
@@ -259,6 +324,12 @@ public class CaseSheetService {
         r.setHeight(v.getHeight());
         r.setBloodGlucose(v.getBloodGlucose());
         r.setNotes(v.getNotes());
+        r.setDrainage(v.getDrainage());
+        r.setAspiration(v.getAspiration());
+        r.setIntake(v.getIntake());
+        r.setOutput(v.getOutput());
+        r.setRemarks(v.getRemarks());
+        r.setSource(v.getSource());
         r.setCreatedBy(v.getCreatedBy());
         r.setCreatedAt(v.getCreatedAt());
         r.setUpdatedAt(v.getUpdatedAt());

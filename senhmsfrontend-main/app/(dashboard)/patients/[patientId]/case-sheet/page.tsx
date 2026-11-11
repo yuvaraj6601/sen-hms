@@ -11,6 +11,8 @@ import Modal, { FormField, Input, Select, Textarea } from "../../../../_componen
 import TestSearchSelect from "../../../../_components/TestSearchSelect";
 import VoicePrescriptionModal from "../../../../_components/VoicePrescriptionModal";
 import UploadPrescriptionModal from "../../../../_components/UploadPrescriptionModal";
+import UploadCaseSheetModal from "../../../../_components/UploadCaseSheetModal";
+import VoiceField from "../../../../_components/VoiceField";
 import HospitalHeader from "../../../../_components/hospital/HospitalHeader";
 import { HOSPITAL } from "../../../../_lib/hospital-config";
 
@@ -144,6 +146,10 @@ interface ObservationResponse {
   diagnosis: string;
   plan: string;
   notes: string;
+  generalExamination: string | null;
+  systemicExamination: string | null;
+  advice: string | null;
+  source: "MANUAL" | "AI_UPLOAD" | null;
   createdBy: string;
   createdAt: string;
 }
@@ -198,6 +204,12 @@ interface VitalSignResponse {
   height: number;
   bloodGlucose: number;
   notes: string;
+  intake: string | null;
+  output: string | null;
+  remarks: string | null;
+  drainage: string | null;
+  aspiration: string | null;
+  source: "MANUAL" | "AI_UPLOAD" | null;
 }
 
 interface LabMasterResponse {
@@ -332,6 +344,18 @@ const OBS_TYPE_ENUM: Record<string, string> = {
   Round: "ROUND", Consultation: "CONSULTATION", "Post-Op": "POST_OP",
   Emergency: "EMERGENCY", "Discharge Note": "DISCHARGE_NOTE",
 };
+const EMPTY_OBS_FORM = { date: "", time: "", doctorName: "", type: "Round", chiefComplaint: "", diagnosis: "", plan: "", generalExamination: "", systemicExamination: "", advice: "" };
+const EMPTY_VITALS_FORM = {
+  bloodPressure: "", pulse: "", temperature: "", spo2: "",
+  respiratoryRate: "", weight: "", height: "", bloodGlucose: "", notes: "",
+  intake: "", output: "", remarks: "", recordedAt: "",
+};
+/** "ROUND" → "Round" for the observation-type select. */
+function obsTypeLabel(enumValue: string): string {
+  return Object.keys(OBS_TYPE_ENUM).find(k => OBS_TYPE_ENUM[k] === enumValue) ?? "Round";
+}
+const numOrUndef = (v: string) => (v.trim() === "" ? undefined : Number(v));
+
 const MED_ROUTE_ENUM: Record<string, string> = {
   Oral: "ORAL", IV: "IV", IM: "IM", SC: "SC",
   Topical: "TOPICAL", Inhaled: "INHALATION", Sublingual: "SUBLINGUAL",
@@ -541,14 +565,14 @@ export default function CaseSheetPage({ params }: { params: Promise<{ patientId:
   // Observation modal
   const [obsModalOpen, setObsModalOpen] = useState(false);
   const [obsSaving,    setObsSaving]    = useState(false);
-  const [obsForm, setObsForm] = useState({
-    type: "Round",
-    chiefComplaint: "", clinicalFindings: "", diagnosis: "", plan: "", notes: "",
-  });
+  const [obsForm, setObsForm] = useState(EMPTY_OBS_FORM);
+  /** Saved observation being edited — null when adding a new one. */
+  const [editingObs, setEditingObs] = useState<ObservationResponse | null>(null);
 
   // Voice prescription
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [prescriptions, setPrescriptions] = useState<PrescriptionRecord[]>([]);
 
   // Medication modal
@@ -562,10 +586,9 @@ export default function CaseSheetPage({ params }: { params: Promise<{ patientId:
   // Vitals modal
   const [vitalsModalOpen, setVitalsModalOpen] = useState(false);
   const [vitalsSaving,    setVitalsSaving]    = useState(false);
-  const [vitalsForm, setVitalsForm] = useState({
-    bloodPressure: "", pulse: "", temperature: "", spo2: "",
-    respiratoryRate: "", weight: "", height: "", bloodGlucose: "", notes: "",
-  });
+  const [vitalsForm, setVitalsForm] = useState(EMPTY_VITALS_FORM);
+  /** Saved vitals row being edited — null when recording new vitals. */
+  const [editingVital, setEditingVital] = useState<VitalSignResponse | null>(null);
 
   // Stop medication
   const [stopMedId,  setStopMedId]  = useState<number | null>(null);
@@ -999,31 +1022,66 @@ ${sec("FOLLOW-UP", f.followUp || "")}
   }
 
   // ── Save observation ───────────────────────────────────────────────────────
-  async function handleSaveObs() {
-    if (!patient || !obsForm.chiefComplaint.trim() || !obsForm.diagnosis.trim()) return;
-    setObsSaving(true);
+  function openAddObs() {
     const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setEditingObs(null);
+    setObsForm({
+      ...EMPTY_OBS_FORM,
+      date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      doctorName: userName,
+    });
+    setObsModalOpen(true);
+  }
+
+  function openEditObs(obs: ObservationResponse) {
+    setEditingObs(obs);
+    setObsForm({
+      date: obs.date ?? "", time: (obs.time ?? "").slice(0, 5), doctorName: obs.doctorName ?? "",
+      type: obsTypeLabel(obs.type),
+      chiefComplaint: obs.chiefComplaint ?? "",
+      diagnosis: obs.diagnosis ?? "", plan: obs.plan ?? "",
+      generalExamination: obs.generalExamination ?? "", systemicExamination: obs.systemicExamination ?? "",
+      advice: obs.advice ?? "",
+    });
+    setObsModalOpen(true);
+  }
+
+  function closeObsModal() {
+    setObsModalOpen(false);
+    setEditingObs(null);
+    setObsForm(EMPTY_OBS_FORM);
+  }
+
+  async function handleSaveObs() {
+    if (!patient || !obsForm.chiefComplaint.trim() || !obsForm.diagnosis.trim()
+        || !obsForm.date || !obsForm.time || !obsForm.doctorName.trim()) return;
+    setObsSaving(true);
     const body = {
-      patientId:       patient.id,
-      uhid:            patient.uhid,
-      admissionId:     admission?.id ?? undefined,
-      date:            now.toISOString().slice(0, 10),
-      time:            now.toTimeString().slice(0, 5),
-      doctorName:      userName,
+      patientId:       editingObs?.patientId ?? patient.id,
+      uhid:            editingObs?.uhid ?? patient.uhid,
+      admissionId:     editingObs ? editingObs.admissionId ?? undefined : admission?.id ?? undefined,
+      date:            obsForm.date,
+      time:            obsForm.time,
+      doctorName:      obsForm.doctorName.trim(),
       type:            OBS_TYPE_ENUM[obsForm.type] ?? "ROUND",
       chiefComplaint:  obsForm.chiefComplaint,
-      clinicalFindings:obsForm.clinicalFindings || undefined,
+      // Not on the form (same fields as the AI upload review) — an edit keeps any saved value.
+      clinicalFindings:editingObs?.clinicalFindings || undefined,
+      notes:           editingObs?.notes || undefined,
       diagnosis:       obsForm.diagnosis,
       plan:            obsForm.plan || undefined,
-      notes:           obsForm.notes || undefined,
+      generalExamination:  obsForm.generalExamination || undefined,
+      systemicExamination: obsForm.systemicExamination || undefined,
+      advice:              obsForm.advice || undefined,
     };
-    const { ok, error } = await apiFetch("/api/case-sheet/observations", {
-      method: "POST", body: JSON.stringify(body),
-    });
+    const { ok, error } = editingObs
+      ? await apiFetch(`/api/case-sheet/observations/${editingObs.id}`, { method: "PUT", body: JSON.stringify(body) })
+      : await apiFetch("/api/case-sheet/observations", { method: "POST", body: JSON.stringify(body) });
     setObsSaving(false);
     if (!ok) { alert(error); return; }
-    setObsForm({ type: "Round", chiefComplaint: "", clinicalFindings: "", diagnosis: "", plan: "", notes: "" });
-    setObsModalOpen(false);
+    closeObsModal();
     loadCaseSheet();
   }
 
@@ -1057,32 +1115,58 @@ ${sec("FOLLOW-UP", f.followUp || "")}
   }
 
   // ── Record vitals ──────────────────────────────────────────────────────────
+  function openEditVital(v: VitalSignResponse) {
+    const str = (n: number | null | undefined) => (n == null ? "" : String(n));
+    setEditingVital(v);
+    setVitalsForm({
+      bloodPressure: v.bloodPressure ?? "", pulse: str(v.pulse), temperature: str(v.temperature), spo2: str(v.spo2),
+      respiratoryRate: str(v.respiratoryRate), weight: str(v.weight), height: str(v.height),
+      bloodGlucose: str(v.bloodGlucose), notes: v.notes ?? "",
+      intake: v.intake ?? "", output: v.output ?? "", remarks: v.remarks ?? "",
+      recordedAt: v.recordedAt ? v.recordedAt.slice(0, 16) : "",
+    });
+    setVitalsModalOpen(true);
+  }
+
+  function closeVitalsModal() {
+    setVitalsModalOpen(false);
+    setEditingVital(null);
+    setVitalsForm(EMPTY_VITALS_FORM);
+  }
+
   async function handleSaveVitals() {
     if (!patient) return;
+    if (editingVital && !vitalsForm.recordedAt) { alert("Date & time is required"); return; }
     setVitalsSaving(true);
     const body = {
-      patientId:       patient.id,
-      uhid:            patient.uhid,
-      admissionId:     admission?.id ?? undefined,
-      recordedAt:      new Date().toISOString(),
-      recordedBy:      userName,
-      bloodPressure:   vitalsForm.bloodPressure  || undefined,
-      pulse:           vitalsForm.pulse           ? Number(vitalsForm.pulse)           : undefined,
-      temperature:     vitalsForm.temperature     ? Number(vitalsForm.temperature)     : undefined,
-      spo2:            vitalsForm.spo2             ? Number(vitalsForm.spo2)             : undefined,
-      respiratoryRate: vitalsForm.respiratoryRate  ? Number(vitalsForm.respiratoryRate) : undefined,
-      weight:          vitalsForm.weight           ? Number(vitalsForm.weight)           : undefined,
-      height:          vitalsForm.height           ? Number(vitalsForm.height)           : undefined,
-      bloodGlucose:    vitalsForm.bloodGlucose     ? Number(vitalsForm.bloodGlucose)     : undefined,
-      notes:           vitalsForm.notes || undefined,
+      patientId:       editingVital?.patientId ?? patient.id,
+      uhid:            editingVital?.uhid ?? patient.uhid,
+      admissionId:     editingVital ? editingVital.admissionId ?? undefined : admission?.id ?? undefined,
+      recordedAt:      editingVital ? vitalsForm.recordedAt : new Date().toISOString(),
+      recordedBy:      editingVital?.recordedBy ?? userName,
+      bloodPressure:   vitalsForm.bloodPressure || undefined,
+      pulse:           numOrUndef(vitalsForm.pulse),
+      temperature:     numOrUndef(vitalsForm.temperature),
+      spo2:            numOrUndef(vitalsForm.spo2),
+      respiratoryRate: numOrUndef(vitalsForm.respiratoryRate),
+      weight:          numOrUndef(vitalsForm.weight),
+      height:          numOrUndef(vitalsForm.height),
+      bloodGlucose:    numOrUndef(vitalsForm.bloodGlucose),
+      // Notes is no longer on the form — an edit keeps any value saved earlier.
+      notes:           editingVital?.notes || undefined,
+      intake:          vitalsForm.intake || undefined,
+      output:          vitalsForm.output || undefined,
+      remarks:         vitalsForm.remarks || undefined,
+      drainage:        editingVital?.drainage ?? undefined,
+      aspiration:      editingVital?.aspiration ?? undefined,
+      source:          editingVital?.source ?? undefined,
     };
-    const { ok, error } = await apiFetch("/api/case-sheet/vitals", {
-      method: "POST", body: JSON.stringify(body),
-    });
+    const { ok, error } = editingVital
+      ? await apiFetch(`/api/case-sheet/vitals/${editingVital.id}`, { method: "PUT", body: JSON.stringify(body) })
+      : await apiFetch("/api/case-sheet/vitals", { method: "POST", body: JSON.stringify(body) });
     setVitalsSaving(false);
     if (!ok) { alert(error); return; }
-    setVitalsForm({ bloodPressure: "", pulse: "", temperature: "", spo2: "", respiratoryRate: "", weight: "", height: "", bloodGlucose: "", notes: "" });
-    setVitalsModalOpen(false);
+    closeVitalsModal();
     loadCaseSheet();
   }
 
@@ -1391,14 +1475,24 @@ ${sec("FOLLOW-UP", f.followUp || "")}
 
       {/* ── Tab bar ── */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex overflow-x-auto border-b border-slate-100">
-          {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 flex-shrink-0
-                ${tab === t.id ? "border-[#00059f] text-[#00059f] bg-blue-50/50" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}>
-              <span>{t.icon}</span>{t.label}
+        <div className="flex items-center border-b border-slate-100">
+          <div className="flex flex-1 min-w-0 overflow-x-auto">
+            {TABS.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 flex-shrink-0
+                  ${tab === t.id ? "border-[#00059f] text-[#00059f] bg-blue-50/50" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}>
+                <span>{t.icon}</span>{t.label}
+              </button>
+            ))}
+          </div>
+          {/* Upload Report fills observations, vitals and the discharge summary — so it lives in the header, not one tab */}
+          {admission && isActive && (role === "Admin" || role === "Managing Director" || role === "Doctor") && (
+            <button onClick={() => setReportModalOpen(true)}
+              className="flex-shrink-0 mx-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#00059f] text-[#00059f] bg-white hover:bg-blue-50 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4m0 0L8 8m4-4v12" /></svg>
+              Upload Report
             </button>
-          ))}
+          )}
         </div>
 
         <div className="p-5">
@@ -1517,8 +1611,8 @@ ${sec("FOLLOW-UP", f.followUp || "")}
           {tab === "observations" && (
             <div className="space-y-4">
               {isActive && (role === "Admin" || role === "Managing Director" || role === "Doctor") && (
-                <div className="flex justify-end">
-                  <button onClick={() => setObsModalOpen(true)}
+                <div className="flex justify-end gap-2">
+                  <button onClick={openAddObs}
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-[#00059f] text-white hover:bg-blue-800 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                     Add Observation
@@ -1538,12 +1632,24 @@ ${sec("FOLLOW-UP", f.followUp || "")}
                             </span>
                             <span className="text-xs text-slate-500">{obs.date} at {obs.time}</span>
                           </div>
-                          <span className="text-xs text-slate-500 font-medium">{obs.doctorName}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-slate-500 font-medium">{obs.doctorName}</span>
+                            {isActive && (role === "Admin" || role === "Managing Director" || role === "Doctor") && (
+                              <button onClick={() => openEditObs(obs)}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold text-[#00059f] border border-[#00059f]/30 hover:bg-blue-50">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                Edit
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <ObsRow label="Chief Complaint"   value={obs.chiefComplaint} />
                         <ObsRow label="Clinical Findings" value={obs.clinicalFindings} />
+                        {obs.generalExamination  && <ObsRow label="General Examination"  value={obs.generalExamination} />}
+                        {obs.systemicExamination && <ObsRow label="Systemic Examination" value={obs.systemicExamination} />}
                         <ObsRow label="Diagnosis"         value={obs.diagnosis} highlight />
                         <ObsRow label="Plan"              value={obs.plan} />
+                        {obs.advice && <ObsRow label="Advice" value={obs.advice} />}
                         {obs.notes && <ObsRow label="Notes" value={obs.notes} />}
                       </div>
                     ))}
@@ -1843,7 +1949,7 @@ ${sec("FOLLOW-UP", f.followUp || "")}
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-100">
-                          {["Date / Time","BP (mmHg)","Pulse (bpm)","Temp (°F)","SpO₂ (%)","RR (/min)","Weight (kg)","Glucose","Recorded By"].map(h => (
+                          {["Date / Time","BP (mmHg)","Pulse (bpm)","Temp (°F)","SpO₂ (%)","RR (/min)","Weight (kg)","Glucose","Intake","Output","Remarks","Recorded By", ...((isActive && (isMD || role === "Admin" || role === "Doctor" || role === "Nurse")) ? [""] : [])].map(h => (
                             <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
@@ -1859,7 +1965,16 @@ ${sec("FOLLOW-UP", f.followUp || "")}
                             <td className={`px-3 py-2.5 text-xs ${vitalClass(vitalStatus("respiratoryRate", v.respiratoryRate))}`}>{v.respiratoryRate ?? "—"}</td>
                             <td className="px-3 py-2.5 text-xs text-slate-600">{v.weight ?? "—"}</td>
                             <td className="px-3 py-2.5 text-xs text-slate-600">{v.bloodGlucose ?? "—"}</td>
+                            <td className="px-3 py-2.5 text-xs text-slate-600 min-w-32">{v.intake ?? "—"}</td>
+                            <td className="px-3 py-2.5 text-xs text-slate-600 min-w-32">{v.output ?? "—"}</td>
+                            <td className="px-3 py-2.5 text-xs text-slate-600 min-w-40">{v.remarks ?? "—"}</td>
                             <td className="px-3 py-2.5 text-xs text-slate-500">{v.recordedBy}</td>
+                            {(isActive && (isMD || role === "Admin" || role === "Doctor" || role === "Nurse")) && (
+                              <td className="px-3 py-2.5 text-right">
+                                <button onClick={() => openEditVital(v)}
+                                  className="px-2 py-1 rounded-md text-xs font-semibold text-[#00059f] border border-[#00059f]/30 hover:bg-blue-50">Edit</button>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -2166,7 +2281,9 @@ ${sec("FOLLOW-UP", f.followUp || "")}
                 : <div className="w-full px-3 py-2 rounded-lg border border-slate-100 text-sm text-slate-700 bg-slate-50">{dsForm[key] || "—"}</div>;
             const area = (key: string, rows = 4, placeholder?: string) =>
               canEdit
-                ? <textarea className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white placeholder-slate-300 resize-y" rows={rows} value={dsForm[key] ?? ""} placeholder={placeholder ?? "Type here..."} onChange={e => { setDsForm(p => ({ ...p, [key]: e.target.value })); setDsIsDirty(true); }} />
+                ? <VoiceField value={dsForm[key] ?? ""} onChange={v => { setDsForm(p => ({ ...p, [key]: v })); setDsIsDirty(true); }}>
+                    <textarea className="w-full pl-3 pr-9 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white placeholder-slate-300 resize-y" rows={rows} value={dsForm[key] ?? ""} placeholder={placeholder ?? "Type here..."} onChange={e => { setDsForm(p => ({ ...p, [key]: e.target.value })); setDsIsDirty(true); }} />
+                  </VoiceField>
                 : <div className="w-full px-3 py-2 rounded-lg border border-slate-100 text-sm text-slate-700 bg-slate-50 whitespace-pre-wrap min-h-[60px]">{dsForm[key] || "—"}</div>;
             const lbl = (text: string) => <label className="block text-xs font-semibold text-slate-500 mb-1">{text}</label>;
             return (
@@ -2340,37 +2457,68 @@ ${sec("FOLLOW-UP", f.followUp || "")}
       </div>
 
       {/* ═══ Add Observation Modal ═══ */}
-      <Modal open={obsModalOpen} onClose={() => setObsModalOpen(false)} title="Add Doctor Observation" size="lg"
+      <Modal open={obsModalOpen} onClose={closeObsModal} title={editingObs ? "Edit Observation" : "Add Doctor Observation"} size="lg"
         footer={
           <>
-            <button onClick={() => setObsModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-            <button onClick={handleSaveObs} disabled={obsSaving || !obsForm.chiefComplaint.trim() || !obsForm.diagnosis.trim()}
+            <button onClick={closeObsModal} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+            <button onClick={handleSaveObs} disabled={obsSaving || !obsForm.chiefComplaint.trim() || !obsForm.diagnosis.trim() || !obsForm.date || !obsForm.time || !obsForm.doctorName.trim()}
               className="px-4 py-2 text-sm bg-[#00059f] text-white font-semibold rounded-lg hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
-              {obsSaving && <Spinner />} Save Observation
+              {obsSaving && <Spinner />} {editingObs ? "Update Observation" : "Save Observation"}
             </button>
           </>
         }>
         <div className="space-y-4">
-          <FormField label="Observation Type">
-            <Select value={obsForm.type} onChange={e => setObsForm({ ...obsForm, type: e.target.value })}>
-              {["Round","Consultation","Post-Op","Emergency","Discharge Note"].map(t => <option key={t}>{t}</option>)}
-            </Select>
-          </FormField>
-          <FormField label="Chief Complaint" required>
-            <Textarea value={obsForm.chiefComplaint} onChange={e => setObsForm({ ...obsForm, chiefComplaint: e.target.value })} placeholder="Patient's complaints / presenting symptoms" rows={2} />
-          </FormField>
-          <FormField label="Clinical Findings">
-            <Textarea value={obsForm.clinicalFindings} onChange={e => setObsForm({ ...obsForm, clinicalFindings: e.target.value })} placeholder="Examination findings, vitals, investigations noted" rows={3} />
-          </FormField>
-          <FormField label="Diagnosis" required>
-            <Textarea value={obsForm.diagnosis} onChange={e => setObsForm({ ...obsForm, diagnosis: e.target.value })} placeholder="Working or confirmed diagnosis" rows={2} />
-          </FormField>
-          <FormField label="Treatment Plan">
-            <Textarea value={obsForm.plan} onChange={e => setObsForm({ ...obsForm, plan: e.target.value })} placeholder="Medications ordered, procedures, follow-up plan" rows={3} />
-          </FormField>
-          <FormField label="Additional Notes">
-            <Textarea value={obsForm.notes} onChange={e => setObsForm({ ...obsForm, notes: e.target.value })} placeholder="Any additional notes (optional)" rows={2} />
-          </FormField>
+          {/* Same fields, same order as the Upload Report review */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <FormField label="Date" required>
+              <Input type="date" value={obsForm.date} onChange={e => setObsForm({ ...obsForm, date: e.target.value })} />
+            </FormField>
+            <FormField label="Time" required>
+              <Input type="time" value={obsForm.time} onChange={e => setObsForm({ ...obsForm, time: e.target.value })} />
+            </FormField>
+            <FormField label="Doctor" required>
+              <VoiceField value={obsForm.doctorName} onChange={v => setObsForm(f => ({ ...f, doctorName: v }))}>
+                <Input className="pr-9" value={obsForm.doctorName} onChange={e => setObsForm({ ...obsForm, doctorName: e.target.value })} />
+              </VoiceField>
+            </FormField>
+            <FormField label="Type">
+              <Select value={obsForm.type} onChange={e => setObsForm({ ...obsForm, type: e.target.value })}>
+                {["Round","Consultation","Post-Op","Emergency","Discharge Note"].map(t => <option key={t}>{t}</option>)}
+              </Select>
+            </FormField>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Chief complaint (C/o)" required>
+              <VoiceField value={obsForm.chiefComplaint} onChange={v => setObsForm(f => ({ ...f, chiefComplaint: v }))}>
+                <Textarea className="pr-9" value={obsForm.chiefComplaint} onChange={e => setObsForm({ ...obsForm, chiefComplaint: e.target.value })} rows={3} />
+              </VoiceField>
+            </FormField>
+            <FormField label="Diagnosis" required>
+              <VoiceField value={obsForm.diagnosis} onChange={v => setObsForm(f => ({ ...f, diagnosis: v }))}>
+                <Textarea className="pr-9" value={obsForm.diagnosis} onChange={e => setObsForm({ ...obsForm, diagnosis: e.target.value })} rows={3} />
+              </VoiceField>
+            </FormField>
+            <FormField label="General examination (O/E)">
+              <VoiceField value={obsForm.generalExamination} onChange={v => setObsForm(f => ({ ...f, generalExamination: v }))}>
+                <Textarea className="pr-9" value={obsForm.generalExamination} onChange={e => setObsForm({ ...obsForm, generalExamination: e.target.value })} rows={3} />
+              </VoiceField>
+            </FormField>
+            <FormField label="Systemic examination (S/E)">
+              <VoiceField value={obsForm.systemicExamination} onChange={v => setObsForm(f => ({ ...f, systemicExamination: v }))}>
+                <Textarea className="pr-9" value={obsForm.systemicExamination} onChange={e => setObsForm({ ...obsForm, systemicExamination: e.target.value })} rows={3} />
+              </VoiceField>
+            </FormField>
+            <FormField label="Plan">
+              <VoiceField value={obsForm.plan} onChange={v => setObsForm(f => ({ ...f, plan: v }))}>
+                <Textarea className="pr-9" value={obsForm.plan} onChange={e => setObsForm({ ...obsForm, plan: e.target.value })} rows={3} />
+              </VoiceField>
+            </FormField>
+            <FormField label="Advice">
+              <VoiceField value={obsForm.advice} onChange={v => setObsForm(f => ({ ...f, advice: v }))}>
+                <Textarea className="pr-9" value={obsForm.advice} onChange={e => setObsForm({ ...obsForm, advice: e.target.value })} rows={3} />
+              </VoiceField>
+            </FormField>
+          </div>
         </div>
       </Modal>
 
@@ -2436,6 +2584,16 @@ ${sec("FOLLOW-UP", f.followUp || "")}
         />
       )}
 
+      {/* ═══ Case Sheet Report Upload (AI) Modal ═══ */}
+      {admission && (
+        <UploadCaseSheetModal
+          open={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          admissionId={admission.id}
+          onSaved={() => { loadCaseSheet(); prefillDs(admission); }}
+        />
+      )}
+
       {/* ═══ Handwritten Prescription Upload Modal ═══ */}
       {patient && (
         <UploadPrescriptionModal
@@ -2486,17 +2644,22 @@ ${sec("FOLLOW-UP", f.followUp || "")}
       </Modal>
 
       {/* ═══ Record Vitals Modal ═══ */}
-      <Modal open={vitalsModalOpen} onClose={() => setVitalsModalOpen(false)} title="Record Vitals" size="md"
+      <Modal open={vitalsModalOpen} onClose={closeVitalsModal} title={editingVital ? "Edit Vitals" : "Record Vitals"} size="md"
         footer={
           <>
-            <button onClick={() => setVitalsModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+            <button onClick={closeVitalsModal} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
             <button onClick={handleSaveVitals} disabled={vitalsSaving}
               className="px-4 py-2 text-sm bg-[#00059f] text-white font-semibold rounded-lg hover:bg-blue-800 disabled:opacity-40 transition-colors flex items-center gap-2">
-              {vitalsSaving && <Spinner />} Save Vitals
+              {vitalsSaving && <Spinner />} {editingVital ? "Update Vitals" : "Save Vitals"}
             </button>
           </>
         }>
         <div className="space-y-4">
+          {editingVital && (
+            <FormField label="Date & Time" required>
+              <Input type="datetime-local" value={vitalsForm.recordedAt} onChange={e => setVitalsForm({ ...vitalsForm, recordedAt: e.target.value })} />
+            </FormField>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Blood Pressure (mmHg)">
               <Input value={vitalsForm.bloodPressure} onChange={e => setVitalsForm({ ...vitalsForm, bloodPressure: e.target.value })} placeholder="e.g. 120/80" />
@@ -2529,8 +2692,16 @@ ${sec("FOLLOW-UP", f.followUp || "")}
               <Input type="number" step="0.1" value={vitalsForm.bloodGlucose} onChange={e => setVitalsForm({ ...vitalsForm, bloodGlucose: e.target.value })} placeholder="Optional" />
             </FormField>
           </div>
-          <FormField label="Notes">
-            <Textarea value={vitalsForm.notes} onChange={e => setVitalsForm({ ...vitalsForm, notes: e.target.value })} placeholder="Any observations" rows={2} />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="Intake">
+              <Input value={vitalsForm.intake} onChange={e => setVitalsForm({ ...vitalsForm, intake: e.target.value })} />
+            </FormField>
+            <FormField label="Output">
+              <Input value={vitalsForm.output} onChange={e => setVitalsForm({ ...vitalsForm, output: e.target.value })} />
+            </FormField>
+          </div>
+          <FormField label="Remarks">
+            <Input value={vitalsForm.remarks} onChange={e => setVitalsForm({ ...vitalsForm, remarks: e.target.value })} />
           </FormField>
         </div>
       </Modal>

@@ -48,4 +48,9 @@ public class DischargeSummaryResponse {
     private LocalDateTime createdAt;
     private String        updatedBy;
     private LocalDateTime updatedAt;
+
+    private String icuConsultant;
+    private String drugAllergy;
+    /** Full nested discharge-summary JSON string */
+    private String structuredJson;
 }

@@ -62,8 +62,9 @@ app:
   openai:
     api-key: "${OPENAI_API_KEY:}"
     transcribe-model: "${OPENAI_TRANSCRIBE_MODEL:gpt-4o-transcribe}"
-    draft-model: "${OPENAI_DRAFT_MODEL:gpt-4o-mini}"
-    vision-model: "${OPENAI_VISION_MODEL:gpt-4o}"
+    draft-model: "${OPENAI_DRAFT_MODEL:gpt-4.1}"
+    vision-model: "${OPENAI_VISION_MODEL:gpt-4.1}"
+    case-sheet-model: "${OPENAI_CASE_SHEET_MODEL:gpt-4.1}"
 
 # CORS configuration
 cors:

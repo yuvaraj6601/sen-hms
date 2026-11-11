@@ -43,4 +43,9 @@ public class DischargeSummaryRequest {
     private String dischargeAdvice;
     private String followUp;
     private String consultantDesignation;
+
+    private String icuConsultant;
+    private String drugAllergy;
+    /** Full nested discharge-summary JSON string */
+    private String structuredJson;
 }

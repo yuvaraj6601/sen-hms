@@ -129,6 +129,8 @@ public class SecurityConfig {
                 .requestMatchers("/discharge-summary/**").hasAnyRole(MD, AD, DR)
 
                 // ── Case sheet (clinical — doctors/nurses) ──────────────────
+                // AI case-sheet upload writes the discharge summary too — doctors only
+                .requestMatchers("/case-sheet/report-draft", "/case-sheet/report-import").hasAnyRole(MD, AD, DR)
                 .requestMatchers(HttpMethod.GET, "/case-sheet/**").hasAnyRole(MD, AD, DR, RC, IC, NU, LIR)
                 .requestMatchers("/case-sheet/**").hasAnyRole(MD, AD, DR, NU)
 

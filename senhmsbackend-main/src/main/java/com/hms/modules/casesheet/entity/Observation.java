@@ -2,6 +2,7 @@ package com.hms.modules.casesheet.entity;
 
 import com.hms.common.BaseEntity;
 import com.hms.modules.casesheet.enums.ObservationType;
+import com.hms.modules.casesheet.enums.RecordSource;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -60,4 +61,21 @@ public class Observation extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /** Doctor's progress record — "O/E" general examination (conscious, oriented, afebrile…) */
+    @Column(name = "general_examination", columnDefinition = "TEXT")
+    private String generalExamination;
+
+    /** Doctor's progress record — "S/E" systemic examination (CVS, RS, P/A, CNS) */
+    @Column(name = "systemic_examination", columnDefinition = "TEXT")
+    private String systemicExamination;
+
+    /** Doctor's progress record — ADVICE column */
+    @Column(columnDefinition = "TEXT")
+    private String advice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    @Builder.Default
+    private RecordSource source = RecordSource.MANUAL;
 }

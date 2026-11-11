@@ -1,6 +1,7 @@
 package com.hms.modules.casesheet.dto;
 
 import com.hms.modules.casesheet.enums.ObservationType;
+import com.hms.modules.casesheet.enums.RecordSource;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -43,4 +44,8 @@ public class ObservationRequest {
 
     private String plan;
     private String notes;
+    private String generalExamination;
+    private String systemicExamination;
+    private String advice;
+    private RecordSource source;
 }

@@ -1,6 +1,7 @@
 package com.hms.modules.casesheet.dto;
 
 import com.hms.modules.casesheet.enums.ObservationType;
+import com.hms.modules.casesheet.enums.RecordSource;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -23,6 +24,10 @@ public class ObservationResponse {
     private String diagnosis;
     private String plan;
     private String notes;
+    private String generalExamination;
+    private String systemicExamination;
+    private String advice;
+    private RecordSource source;
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

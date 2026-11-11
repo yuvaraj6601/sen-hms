@@ -126,6 +126,9 @@ public class DischargeSummaryService {
         ds.setDischargeAdvice(req.getDischargeAdvice());
         ds.setFollowUp(req.getFollowUp());
         ds.setConsultantDesignation(req.getConsultantDesignation());
+        if (req.getIcuConsultant()  != null) ds.setIcuConsultant(req.getIcuConsultant());
+        if (req.getDrugAllergy()    != null) ds.setDrugAllergy(req.getDrugAllergy());
+        if (req.getStructuredJson() != null) ds.setStructuredJson(req.getStructuredJson());
         return ds;
     }
 
@@ -163,6 +166,9 @@ public class DischargeSummaryService {
         r.setDischargeAdvice(ds.getDischargeAdvice());
         r.setFollowUp(ds.getFollowUp());
         r.setConsultantDesignation(ds.getConsultantDesignation());
+        r.setIcuConsultant(ds.getIcuConsultant());
+        r.setDrugAllergy(ds.getDrugAllergy());
+        r.setStructuredJson(ds.getStructuredJson());
 
         r.setCreatedBy(ds.getCreatedBy());
         r.setCreatedAt(ds.getCreatedAt());

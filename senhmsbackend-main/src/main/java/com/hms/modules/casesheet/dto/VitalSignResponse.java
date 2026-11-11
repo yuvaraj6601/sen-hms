@@ -1,5 +1,6 @@
 package com.hms.modules.casesheet.dto;
 
+import com.hms.modules.casesheet.enums.RecordSource;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,12 @@ public class VitalSignResponse {
     private Double height;
     private Double bloodGlucose;
     private String notes;
+    private String drainage;
+    private String aspiration;
+    private String intake;
+    private String output;
+    private String remarks;
+    private RecordSource source;
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

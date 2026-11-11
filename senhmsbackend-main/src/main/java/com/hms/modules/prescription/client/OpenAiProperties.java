@@ -10,14 +10,15 @@ public record OpenAiProperties(
         @DefaultValue("") String apiKey,
         @DefaultValue("https://api.openai.com/v1") String baseUrl,
         @DefaultValue("gpt-4o-transcribe") String transcribeModel,
-        @DefaultValue("gpt-4o-mini") String draftModel,
-        @DefaultValue("gpt-4o") String visionModel) {
+        @DefaultValue("gpt-4.1") String draftModel,
+        @DefaultValue("gpt-4.1") String visionModel,
+        @DefaultValue("gpt-4.1") String caseSheetModel) {
 
     @ConstructorBinding
     public OpenAiProperties {
     }
 
     public OpenAiProperties(String apiKey, String baseUrl, String transcribeModel, String draftModel) {
-        this(apiKey, baseUrl, transcribeModel, draftModel, "gpt-4o");
+        this(apiKey, baseUrl, transcribeModel, draftModel, "gpt-4.1", "gpt-4.1");
     }
 }
