@@ -15,7 +15,7 @@ import {
 const form = (over: Partial<DietForm> = {}): DietForm => ({
   age: "30", gender: "Male", heightCm: "172", weightKg: "72",
   conditions: ["DIABETES"], activity: "Moderate", goal: "Manage condition",
-  foodPreference: "Vegetarian", allergies: "",
+  foodPreference: "Vegetarian", allergies: "", specialNeeds: "",
   ...over,
 });
 
@@ -80,7 +80,7 @@ describe("buildDietRequest", () => {
     expect(buildDietRequest(form({ allergies: "  peanut, shellfish " }))).toEqual({
       age: 30, gender: "Male", heightCm: 172, weightKg: 72,
       conditions: ["DIABETES"], activity: "Moderate", goal: "Manage condition",
-      foodPreference: "Vegetarian", allergies: "peanut, shellfish",
+      foodPreference: "Vegetarian", allergies: "peanut, shellfish", specialNeeds: "",
     });
   });
   it("never includes patient identity fields", () => {

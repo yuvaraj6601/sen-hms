@@ -33,7 +33,7 @@ interface ChatState {
 
 const EMPTY_FORM: DietForm = {
   age: "", gender: "", heightCm: "", weightKg: "", conditions: [],
-  activity: "Moderate", goal: "Manage condition", foodPreference: "Vegetarian", allergies: "",
+  activity: "Moderate", goal: "Manage condition", foodPreference: "Vegetarian", allergies: "", specialNeeds: "",
 };
 
 const initial = (open = false): ChatState => ({
