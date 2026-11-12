@@ -18,6 +18,7 @@ public class DietPlanInput {
     private String goal;
     private String foodPreference;
     private String allergies;
+    private String specialNeeds;
     private Integer targetCalories;
     private Double proteinCapGrams;
     private List<DietRule> rules = new ArrayList<>();

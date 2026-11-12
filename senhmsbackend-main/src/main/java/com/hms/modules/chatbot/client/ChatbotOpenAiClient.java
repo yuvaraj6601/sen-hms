@@ -47,6 +47,7 @@ public class ChatbotOpenAiClient implements ChatbotAiClient {
               rajma, chole) unless a clinical rule requires it.
             - Every item states a portion (e.g. "3 idlis", "1 cup sambar", "1 cup rice").
             - Respect the food preference and NEVER include an allergen.
+            - If "specialNeeds" is given, adapt the plan to it (texture, timing, portions) without breaking any clinical rule above.
             - NEVER include any food from a rule's forbidden list; prefer its preferred foods;
               honour low-GI, fluid and sodium/potassium/phosphorus limits where stated.
             - "avoid" lists foods to avoid for these conditions; "tips" are short practical advice.
@@ -104,6 +105,7 @@ public class ChatbotOpenAiClient implements ChatbotAiClient {
         profile.put("goal", in.getGoal());
         profile.put("foodPreference", in.getFoodPreference());
         profile.put("allergies", in.getAllergies());
+        profile.put("specialNeeds", in.getSpecialNeeds());
         profile.put("targetCalories", in.getTargetCalories());
         profile.put("proteinCapGrams", in.getProteinCapGrams());
         List<Map<String, Object>> rules = new ArrayList<>();

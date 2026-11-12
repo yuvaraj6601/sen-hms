@@ -48,4 +48,7 @@ public class DietPlanRequest {
 
     @Size(max = 300)
     private String allergies;
+
+    @Size(max = 500)
+    private String specialNeeds;
 }

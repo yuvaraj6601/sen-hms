@@ -79,6 +79,7 @@ public class DietPlanService {
         in.setGoal(req.getGoal());
         in.setFoodPreference(req.getFoodPreference());
         in.setAllergies(req.getAllergies());
+        in.setSpecialNeeds(req.getSpecialNeeds());
         in.setTargetCalories(target);
         in.setProteinCapGrams(proteinCap);
         in.setRules(rules);

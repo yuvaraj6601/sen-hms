@@ -98,6 +98,10 @@ export default function DietFormCard({ form, errors, onChange, onSubmit }: Props
         <label className={label} htmlFor="cb-allergy">Allergies</label>
         <input id="cb-allergy" placeholder="Optional" maxLength={300} className={field} value={form.allergies} onChange={e => onChange({ allergies: e.target.value })} />
       </div>
+      <div>
+        <label className={label} htmlFor="cb-special">Special needs</label>
+        <textarea id="cb-special" rows={2} placeholder="Optional — e.g. difficulty chewing, soft diet, fasting days" maxLength={500} className={field} value={form.specialNeeds} onChange={e => onChange({ specialNeeds: e.target.value })} />
+      </div>
 
       <button type="submit"
         className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold bg-[#00059f] text-white hover:bg-blue-800 transition-colors">

@@ -10,6 +10,7 @@ export interface DietForm {
   goal: string;
   foodPreference: string;
   allergies: string;
+  specialNeeds: string;
 }
 
 /** Sent to the backend. Deliberately has no patient identity fields. */
@@ -23,6 +24,7 @@ export interface DietRequest {
   goal: string;
   foodPreference: string;
   allergies: string;
+  specialNeeds: string;
 }
 
 export interface DietMeal { name: string; time: string; items: string[]; }
@@ -137,6 +139,7 @@ export function buildDietRequest(f: DietForm): DietRequest {
     goal: f.goal,
     foodPreference: f.foodPreference,
     allergies: f.allergies.trim(),
+    specialNeeds: f.specialNeeds.trim(),
   };
 }
 
