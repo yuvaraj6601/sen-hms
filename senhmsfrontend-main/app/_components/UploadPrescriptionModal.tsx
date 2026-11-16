@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
+import FullScreenLoader from "./FullScreenLoader";
 import { toast } from "./Toaster";
 import PrescriptionDraftEditor from "./PrescriptionDraftEditor";
 import {
@@ -134,6 +135,8 @@ export default function UploadPrescriptionModal({ open, onClose, context, onSave
   );
 
   return (
+    <>
+    <FullScreenLoader open={stage === "processing"} message="AI is reading the prescription…" />
     <Modal open={open} onClose={handleClose} title="Upload Handwritten Prescription" size="xl" footer={footer}>
       <div className="space-y-4">
 
@@ -174,5 +177,6 @@ export default function UploadPrescriptionModal({ open, onClose, context, onSave
         )}
       </div>
     </Modal>
+    </>
   );
 }
