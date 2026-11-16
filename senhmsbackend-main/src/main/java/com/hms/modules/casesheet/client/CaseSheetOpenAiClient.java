@@ -418,8 +418,7 @@ public class CaseSheetOpenAiClient implements CaseSheetAiClient {
         }
         Map<String, Object> body = Map.of(
                 "model", props.caseSheetModel(),
-                "temperature", 0,
-                "max_tokens", maxTokens,
+                "max_completion_tokens", maxTokens,
                 "response_format", Map.of("type", "json_object"),
                 "messages", List.of(
                         Map.of("role", "system", "content", system),
