@@ -8,6 +8,7 @@ import { printHtml } from "../../../../_lib/print";
 import { buildLabReportHtml, type LabReportData, type LabReportTest } from "../../../../_lib/lab-report";
 import Badge from "../../../../_components/Badge";
 import Modal, { FormField, Input, Select, Textarea } from "../../../../_components/Modal";
+import DateTimeOkInput from "../../../../_components/DateTimeOkInput";
 import TestSearchSelect from "../../../../_components/TestSearchSelect";
 import VoicePrescriptionModal from "../../../../_components/VoicePrescriptionModal";
 import UploadPrescriptionModal from "../../../../_components/UploadPrescriptionModal";
@@ -2657,7 +2658,7 @@ ${sec("FOLLOW-UP", f.followUp || "")}
         <div className="space-y-4">
           {editingVital && (
             <FormField label="Date & Time" required>
-              <Input type="datetime-local" value={vitalsForm.recordedAt} onChange={e => setVitalsForm({ ...vitalsForm, recordedAt: e.target.value })} />
+              <DateTimeOkInput className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400" value={vitalsForm.recordedAt} onChange={val => setVitalsForm({ ...vitalsForm, recordedAt: val })} />
             </FormField>
           )}
           <div className="grid grid-cols-2 gap-4">

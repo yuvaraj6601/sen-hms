@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
+import FullScreenLoader from "./FullScreenLoader";
 import { toast } from "./Toaster";
 import PrescriptionDraftEditor from "./PrescriptionDraftEditor";
 import {
@@ -177,6 +178,8 @@ export default function VoicePrescriptionModal({ open, onClose, context, onSaved
   );
 
   return (
+    <>
+    <FullScreenLoader open={stage === "processing"} message="AI is processing the recording…" />
     <Modal open={open} onClose={handleClose} title="Voice Prescription" size="xl" footer={footer}>
       <div className="space-y-4">
 
@@ -212,5 +215,6 @@ export default function VoicePrescriptionModal({ open, onClose, context, onSaved
         )}
       </div>
     </Modal>
+    </>
   );
 }

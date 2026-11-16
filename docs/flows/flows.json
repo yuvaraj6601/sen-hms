@@ -4,7 +4,7 @@
   "lastReview": {
     "commit": "8234c5d",
     "date": "2026-11-11",
-    "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)"
+    "trigger": "Feature: Upload Report (AI case sheet \u2192 observations, vitals, discharge summary)"
   },
   "flows": [
     {
@@ -123,7 +123,7 @@
     },
     {
       "id": "handwritten-prescription-upload",
-      "name": "Handwritten prescription upload (AI draft → review → save)",
+      "name": "Handwritten prescription upload (AI draft \u2192 review \u2192 save)",
       "status": "not-checked",
       "files": [
         "senhmsbackend-main/src/main/java/com/hms/exception/GlobalExceptionHandler.java",
@@ -173,9 +173,9 @@
       ],
       "findings": [],
       "lastChecked": {
-        "commit": "8234c5d",
-        "date": "2026-11-11",
-        "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)"
+        "date": "2026-11-16",
+        "commit": "977d17a",
+        "trigger": "fullscreen-ai-loader-vitals-ok \u2014 review skipped"
       }
     },
     {
@@ -208,18 +208,18 @@
     },
     {
       "id": "ai-case-sheet-upload",
-      "name": "IP case sheet upload → AI observations, vitals, discharge summary",
-      "status": "clear",
+      "name": "IP case sheet upload \u2192 AI observations, vitals, discharge summary",
+      "status": "not-checked",
       "dependsOn": [],
       "lastChecked": {
-        "commit": "8234c5d",
-        "date": "2026-11-11",
-        "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)"
+        "date": "2026-11-16",
+        "commit": "977d17a",
+        "trigger": "fullscreen-ai-loader-vitals-ok \u2014 review skipped"
       },
       "findings": [
         {
           "severity": "fixed",
-          "summary": "report-import fell under /case-sheet/** (NU allowed) but writes the discharge summary (doctors only) — restricted both endpoints to MD/AD/DR"
+          "summary": "report-import fell under /case-sheet/** (NU allowed) but writes the discharge summary (doctors only) \u2014 restricted both endpoints to MD/AD/DR"
         }
       ],
       "files": [
@@ -234,7 +234,7 @@
       "steps": [
         {
           "layer": "screen",
-          "name": "Observations tab → Upload Report → read → review tabs → Confirm & Save",
+          "name": "Observations tab \u2192 Upload Report \u2192 read \u2192 review tabs \u2192 Confirm & Save",
           "status": "clear"
         },
         {
@@ -258,6 +258,25 @@
           "status": "clear"
         }
       ]
+    },
+    {
+      "id": "fullscreen-ai-loader-vitals-ok",
+      "name": "Full-screen AI loader & vitals date-time OK button",
+      "files": [
+        "senhmsfrontend-main/app/_components/UploadCaseSheetModal.tsx",
+        "senhmsfrontend-main/app/_components/UploadPrescriptionModal.tsx",
+        "senhmsfrontend-main/app/_components/VoicePrescriptionModal.tsx",
+        "senhmsfrontend-main/app/(dashboard)/patients/[patientId]/case-sheet/page.tsx",
+        "senhmsfrontend-main/app/_components/FullScreenLoader.tsx",
+        "senhmsfrontend-main/app/_components/DateTimeOkInput.tsx"
+      ],
+      "status": "not-checked",
+      "lastChecked": {
+        "date": "2026-11-16",
+        "commit": "977d17a",
+        "trigger": "fullscreen-ai-loader-vitals-ok \u2014 review skipped"
+      },
+      "findings": []
     }
   ],
   "reviews": [
@@ -271,7 +290,7 @@
     {
       "date": "2026-11-10",
       "commit": "f22b196",
-      "trigger": "Handwritten prescription upload — review skipped",
+      "trigger": "Handwritten prescription upload \u2014 review skipped",
       "flowsChecked": 0,
       "broken": 0
     },
@@ -285,10 +304,17 @@
     {
       "commit": "8234c5d",
       "date": "2026-11-11",
-      "trigger": "Feature: Upload Report (AI case sheet → observations, vitals, discharge summary)",
+      "trigger": "Feature: Upload Report (AI case sheet \u2192 observations, vitals, discharge summary)",
       "flowsChecked": 2,
       "broken": 0,
-      "notes": "Old manual Add Observation / Record Vitals / Discharge Summary save: new fields optional, source defaults MANUAL, structuredJson only overwritten when sent — not saved as flows."
+      "notes": "Old manual Add Observation / Record Vitals / Discharge Summary save: new fields optional, source defaults MANUAL, structuredJson only overwritten when sent \u2014 not saved as flows."
+    },
+    {
+      "date": "2026-11-16",
+      "commit": "977d17a",
+      "trigger": "fullscreen-ai-loader-vitals-ok \u2014 review skipped",
+      "flowsChecked": 0,
+      "broken": 0
     }
   ]
 }

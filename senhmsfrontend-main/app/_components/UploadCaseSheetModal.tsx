@@ -4,6 +4,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import { toast } from "./Toaster";
 import VoiceField from "./VoiceField";
+import FullScreenLoader from "./FullScreenLoader";
+import DateTimeOkInput from "./DateTimeOkInput";
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
@@ -208,6 +210,8 @@ export default function UploadCaseSheetModal({ open, onClose, admissionId, onSav
   );
 
   return (
+    <>
+    <FullScreenLoader open={stage === "processing"} message="AI is reading every page of the case sheet — this can take a few minutes…" />
     <Modal open={open} onClose={handleClose} title="Upload Case Sheet Report" size="xl" footer={footer}>
       {(stage === "pick" || stage === "processing") && (
         <div className="flex flex-col items-center gap-3 py-4">
@@ -295,7 +299,7 @@ export default function UploadCaseSheetModal({ open, onClose, admissionId, onSav
                     <tbody>
                       {draft.vitals.map((v, i) => (
                         <tr key={i} className="odd:bg-white even:bg-slate-50/60 hover:bg-blue-50/40">
-                          <td className="px-1.5 py-1.5 align-middle"><input type="datetime-local" className={inputCls} value={v.recordedAt?.slice(0, 16) ?? ""} onChange={e => updateVital(i, { recordedAt: e.target.value || null })} /></td>
+                          <td className="px-1.5 py-1.5 align-middle"><DateTimeOkInput className={inputCls} value={v.recordedAt?.slice(0, 16) ?? ""} onChange={val => updateVital(i, { recordedAt: val || null })} /></td>
                           <td className="px-1.5 py-1.5 align-middle"><NumInput value={v.pulse} onChange={n => updateVital(i, { pulse: n })} /></td>
                           <td className="px-1.5 py-1.5 align-middle"><input className={inputCls} value={v.bloodPressure ?? ""} onChange={e => updateVital(i, { bloodPressure: e.target.value || null })} /></td>
                           <td className="px-1.5 py-1.5 align-middle"><NumInput value={v.respiratoryRate} onChange={n => updateVital(i, { respiratoryRate: n })} /></td>
@@ -336,6 +340,7 @@ export default function UploadCaseSheetModal({ open, onClose, admissionId, onSav
         </div>
       )}
     </Modal>
+    </>
   );
 }
 
