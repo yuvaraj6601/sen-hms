@@ -102,7 +102,6 @@ public class OpenAiRestClient implements OpenAiClient {
         requireKey();
         Map<String, Object> body = Map.of(
                 "model", props.draftModel(),
-                "temperature", 0,
                 "response_format", Map.of("type", "json_object"),
                 "messages", List.of(
                         Map.of("role", "system", "content", SYSTEM_PROMPT),
@@ -129,8 +128,7 @@ public class OpenAiRestClient implements OpenAiClient {
         String dataUri = "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(image);
         Map<String, Object> body = Map.of(
                 "model", props.visionModel(),
-                "temperature", 0,
-                "max_tokens", 2000,
+                "max_completion_tokens", 2000,
                 "response_format", Map.of("type", "json_object"),
                 "messages", List.of(
                         Map.of("role", "system", "content", IMAGE_PROMPT),

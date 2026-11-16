@@ -142,7 +142,6 @@ public class ChatbotOpenAiClient implements ChatbotAiClient {
         }
         Map<String, Object> body = Map.of(
                 "model", props.draftModel(),
-                "temperature", 0.2,
                 "response_format", Map.of("type", system.contains("JSON") ? "json_object" : "text"),
                 "messages", List.of(
                         Map.of("role", "system", "content", system),
